@@ -21,7 +21,7 @@ class LandingLoginController extends Controller
         ], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
-            ]);
+            ])->redirectTo(route('home', ['view' => 'staff']));
         }
 
         $request->session()->regenerate();
