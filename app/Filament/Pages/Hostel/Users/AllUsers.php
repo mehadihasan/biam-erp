@@ -8,7 +8,7 @@ class AllUsers extends BaseHostelPage
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationParentItem = 'User Management';
+    protected static string | \UnitEnum | null $navigationGroup = 'User Management';
 
     protected static ?string $title = 'User Management';
 

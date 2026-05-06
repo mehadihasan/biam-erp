@@ -8,7 +8,7 @@ class NewBooking extends BaseHostelPage
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-plus';
 
-    protected static ?string $navigationParentItem = 'Booking & Reservation';
+    protected static string | \UnitEnum | null $navigationGroup = 'Booking & Reservation';
 
     protected static ?string $title = 'New Booking';
 

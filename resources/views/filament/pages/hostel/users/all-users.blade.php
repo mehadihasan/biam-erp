@@ -5,10 +5,12 @@
                 <h2 class="text-xl font-bold text-gray-950 dark:text-white">User Management</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Manage all system users</p>
             </div>
-            <a href="{{ \App\Filament\Pages\Hostel\Users\NewUser::getUrl(panel: 'admin') }}"
-               class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white">
+            <x-filament::button
+                tag="a"
+                :href="\App\Filament\Pages\Hostel\Users\NewUser::getUrl(panel: 'admin')"
+            >
                 Add New User
-            </a>
+            </x-filament::button>
         </div>
 
         <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">

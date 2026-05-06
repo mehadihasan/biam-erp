@@ -10,6 +10,8 @@ class InventoryDashboard extends Page
 
     protected static string | \UnitEnum | null $navigationGroup = 'Inventory Management';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $title = 'Inventory Dashboard';
 
     protected static ?string $navigationLabel = 'Dashboard';

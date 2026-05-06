@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/js/welcome.js',
                 'resources/css/bcs-cadre.css',
                 'resources/js/bcs-cadre.js',
+                'resources/css/filament/admin/theme.css',
             ],
             refresh: true,
         }),

@@ -8,8 +8,6 @@ class HostelDashboard extends Page
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-home';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Hostel Management';
-
     protected static ?string $title = 'Dashboard';
 
     protected static ?string $navigationLabel = 'Dashboard';

@@ -8,7 +8,7 @@ class NewRoom extends BaseHostelPage
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-plus-circle';
 
-    protected static ?string $navigationParentItem = 'Room Management';
+    protected static string | \UnitEnum | null $navigationGroup = 'Room Management';
 
     protected static ?string $title = 'Add / Edit Room';
 

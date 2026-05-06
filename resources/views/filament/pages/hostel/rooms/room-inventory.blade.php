@@ -5,10 +5,12 @@
                 <h2 class="text-xl font-bold text-gray-950 dark:text-white">Room Inventory</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Manage all hostel rooms</p>
             </div>
-            <a href="{{ \App\Filament\Pages\Hostel\Rooms\NewRoom::getUrl(panel: 'admin') }}"
-               class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white">
+            <x-filament::button
+                tag="a"
+                :href="\App\Filament\Pages\Hostel\Rooms\NewRoom::getUrl(panel: 'admin')"
+            >
                 Add Room
-            </a>
+            </x-filament::button>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

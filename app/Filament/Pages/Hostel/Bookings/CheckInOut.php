@@ -8,7 +8,7 @@ class CheckInOut extends BaseHostelPage
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-arrow-path';
 
-    protected static ?string $navigationParentItem = 'Booking & Reservation';
+    protected static string | \UnitEnum | null $navigationGroup = 'Booking & Reservation';
 
     protected static ?string $title = 'Check-in / Check-out';
 

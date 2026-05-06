@@ -8,7 +8,7 @@ class AllBookings extends BaseHostelPage
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationParentItem = 'Booking & Reservation';
+    protected static string | \UnitEnum | null $navigationGroup = 'Booking & Reservation';
 
     protected static ?string $title = 'All Bookings';
 

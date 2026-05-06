@@ -5,10 +5,12 @@
                 <h2 class="text-xl font-bold text-gray-950 dark:text-white">All Bookings</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Manage reservations and booking status</p>
             </div>
-            <a href="{{ \App\Filament\Pages\Hostel\Bookings\NewBooking::getUrl(panel: 'admin') }}"
-               class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white">
+            <x-filament::button
+                tag="a"
+                :href="\App\Filament\Pages\Hostel\Bookings\NewBooking::getUrl(panel: 'admin')"
+            >
                 New Booking
-            </a>
+            </x-filament::button>
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">

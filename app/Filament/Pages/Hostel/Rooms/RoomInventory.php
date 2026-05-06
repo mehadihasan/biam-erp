@@ -8,9 +8,9 @@ class RoomInventory extends BaseHostelPage
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-office-2';
 
-    protected static ?string $navigationParentItem = 'Room Management';
-
     protected static ?string $title = 'Room Inventory';
+
+    protected static string | \UnitEnum | null $navigationGroup = 'Room Management';
 
     protected static ?string $navigationLabel = 'Room Inventory';
 
