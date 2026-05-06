@@ -7,6 +7,12 @@
 
 @import '../../../vendor/filament/filament/resources/css/theme.css';
 
+/*
+ * Ensure Tailwind picks up utility classes used inside our custom Filament page views.
+ * Without this, production builds can purge the dashboard layout classes, resulting in "plain text".
+ */
+@source "../../../views/filament/pages/**/*.blade.php";
+
 /* Sidebar */
 .fi-sidebar {
     background-color: #153a57 !important;
