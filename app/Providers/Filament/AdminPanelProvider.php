@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Hostel\Rooms\RoomDetail;
 use App\Filament\Pages\HostelDashboard;
 use App\Filament\Pages\InventoryDashboard;
 use App\Filament\Pages\ModuleSelector;
@@ -57,6 +58,7 @@ class AdminPanelProvider extends PanelProvider
                 ModuleSelector::class,
                 HostelDashboard::class,
                 InventoryDashboard::class,
+                RoomDetail::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
