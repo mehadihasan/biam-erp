@@ -10,10 +10,9 @@ class GuestBookingController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'application_scan' => ['required', 'file', 'mimes:pdf,jpeg,jpg,png', 'max:10240'],
+            'application_scan' => ['nullable', 'file', 'mimes:pdf,jpeg,jpg,png', 'max:10240'],
             'guest_cadre_reference' => ['required', 'string'],
         ], [
-            'application_scan.required' => __('Please upload your application scan copy.'),
             'application_scan.mimes' => __('The file must be a PDF, JPG, or PNG.'),
         ]);
 
@@ -26,7 +25,9 @@ class GuestBookingController extends Controller
                 ->withInput();
         }
 
-        $request->file('application_scan')->store('guest-applications', 'local');
+        if ($request->hasFile('application_scan')) {
+            $request->file('application_scan')->store('guest-applications', 'local');
+        }
 
         $request->session()->put('guest_pending_otp', true);
 
@@ -53,6 +54,7 @@ class GuestBookingController extends Controller
         }
 
         $request->session()->forget('guest_pending_otp');
+        $request->session()->put('guest_verified', true);
         $request->session()->flash('guest_application_success', true);
 
         return redirect()->route('home', ['view' => 'guest']);

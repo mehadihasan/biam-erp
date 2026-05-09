@@ -128,6 +128,43 @@
                             >
                                 @csrf
                                 <div class="field">
+                                    <label for="guest_full_name">{{ __('Full Name') }}</label>
+                                    <input
+                                        id="guest_full_name"
+                                        name="guest_full_name"
+                                        type="text"
+                                        value="{{ old('guest_full_name') }}"
+                                        placeholder="{{ __('Enter your full name') }}"
+                                        autocomplete="name"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <label for="guest_mobile_no">{{ __('Mobile No') }}</label>
+                                    <input
+                                        id="guest_mobile_no"
+                                        name="guest_mobile_no"
+                                        type="text"
+                                        value="{{ old('guest_mobile_no') }}"
+                                        placeholder="{{ __('Enter your mobile no') }}"
+                                        inputmode="tel"
+                                        autocomplete="tel"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <label for="guest_email">{{ __('Email') }}</label>
+                                    <input
+                                        id="guest_email"
+                                        name="guest_email"
+                                        type="email"
+                                        value="{{ old('guest_email') }}"
+                                        placeholder="{{ __('Enter your email (optional)') }}"
+                                        autocomplete="email"
+                                    >
+                                </div>
+
+                                <div class="field">
                                     <span class="field__label">{{ __('Upload your application scan copy') }}</span>
                                     <label class="guest-upload" for="guest_application_scan">
                                         <input
@@ -136,7 +173,6 @@
                                             type="file"
                                             name="application_scan"
                                             accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-                                            required
                                         >
                                         <span class="guest-upload__ui" aria-hidden="true">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -259,7 +295,8 @@
                         value="{{ old('otp') }}"
                         placeholder="{{ __('Enter 5-digit OTP') }}"
                         inputmode="numeric"
-                        maxlength="8"
+                        maxlength="5"
+                        pattern="[0-9]{5}"
                         autocomplete="one-time-code"
                         required
                     >
@@ -298,7 +335,8 @@
                         value="{{ old('guest_otp') }}"
                         placeholder="{{ __('Enter 5-digit OTP') }}"
                         inputmode="numeric"
-                        maxlength="8"
+                        maxlength="5"
+                        pattern="[0-9]{5}"
                         autocomplete="one-time-code"
                         required
                     >

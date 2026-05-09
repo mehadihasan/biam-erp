@@ -82,9 +82,7 @@ class BcsCadreAuthController extends Controller
             return redirect()->route('home');
         }
 
-        return view('bcs-cadre.dashboard', [
-            'cadreReference' => self::DEMO_CADRE_REFERENCE,
-        ]);
+        return redirect()->route('cadre.booking');
     }
 
     public function cancelOtp(Request $request): RedirectResponse

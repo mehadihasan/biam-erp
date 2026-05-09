@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BcsCadreAuthController;
+use App\Http\Controllers\BcsCadrePortalController;
 use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\LandingLoginController;
 use App\Filament\Pages\Hostel\Bookings\AllBookings;
@@ -98,4 +99,14 @@ Route::prefix('cadre')->name('cadre.')->group(function () {
     Route::post('/otp', [BcsCadreAuthController::class, 'verifyOtp'])->name('otp.verify');
     Route::get('/otp/cancel', [BcsCadreAuthController::class, 'cancelOtp'])->name('otp.cancel');
     Route::get('/dashboard', [BcsCadreAuthController::class, 'dashboard'])->name('dashboard');
+    Route::get('/booking', [BcsCadrePortalController::class, 'booking'])->name('booking');
+    Route::get('/meals', [BcsCadrePortalController::class, 'mealOrder'])->name('meals');
+    Route::post('/meals', [BcsCadrePortalController::class, 'storeMealOrder'])->name('meals.store');
+    Route::put('/meals/{mealOrder}', [BcsCadrePortalController::class, 'updateMealOrder'])->name('meals.update');
+    Route::delete('/meals/{mealOrder}', [BcsCadrePortalController::class, 'destroyMealOrder'])->name('meals.destroy');
+    Route::get('/feedback', [BcsCadrePortalController::class, 'feedback'])->name('feedback');
+    Route::post('/feedback', [BcsCadrePortalController::class, 'storeFeedback'])->name('feedback.store');
+    Route::put('/feedback/{feedback}', [BcsCadrePortalController::class, 'updateFeedback'])->name('feedback.update');
+    Route::delete('/feedback/{feedback}', [BcsCadrePortalController::class, 'destroyFeedback'])->name('feedback.destroy');
+    Route::get('/billing', [BcsCadrePortalController::class, 'billing'])->name('billing');
 });
