@@ -36,12 +36,8 @@
             </select>
         </div>
 
-        @php
-            $visibleRooms = $this->rooms->take(4);
-        @endphp
-
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            @forelse ($visibleRooms as $room)
+            @forelse ($this->rooms as $room)
                 @php
                     $typeLabel = match ($room->room_type) {
                         'vip' => 'VIP',
