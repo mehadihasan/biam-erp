@@ -3,6 +3,8 @@
 namespace App\Filament\Pages\Hostel\Users;
 
 use App\Filament\Pages\Hostel\BaseHostelPage;
+use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class AllUsers extends BaseHostelPage
 {
@@ -19,4 +21,12 @@ class AllUsers extends BaseHostelPage
     protected static ?int $navigationSort = 11;
 
     protected string $view = 'filament.pages.hostel.users.all-users';
+
+    public function getUsers(): LengthAwarePaginator
+    {
+        return User::query()
+            ->with('designation')
+            ->latest()
+            ->paginate(10);
+    }
 }

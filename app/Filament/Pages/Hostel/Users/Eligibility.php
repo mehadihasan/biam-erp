@@ -6,6 +6,8 @@ use App\Filament\Pages\Hostel\BaseHostelPage;
 
 class Eligibility extends BaseHostelPage
 {
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-shield-check';
 
     protected static string | \UnitEnum | null $navigationGroup = 'User Management';

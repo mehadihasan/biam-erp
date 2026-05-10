@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\BcsCadreAuthController;
 use App\Http\Controllers\BcsCadrePortalController;
+use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\LandingLoginController;
+use App\Http\Controllers\UserController;
 use App\Filament\Pages\Hostel\Bookings\AllBookings;
 use App\Filament\Pages\Hostel\Bookings\Calendar;
 use App\Filament\Pages\Hostel\Bookings\CheckInOut;
@@ -59,6 +61,18 @@ Route::post('/login', [LandingLoginController::class, 'store'])->name('site.logi
 */
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/dashboard', fn () => redirect(HostelDashboard::getUrl(panel: 'admin')))->name('dashboard');
+    Route::get('/user/new', [UserController::class, 'create'])->name('users.create');
+    Route::post('/user', [UserController::class, 'store'])->name('users.store');
+
+    Route::prefix('admin/hostel')->group(function () {
+        Route::put('/user/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::patch('/user/{user}', [UserController::class, 'update']);
+
+        Route::post('/designations', [DesignationController::class, 'store'])->name('designations.store');
+        Route::put('/designations/{designation}', [DesignationController::class, 'update'])->name('designations.update');
+        Route::patch('/designations/{designation}', [DesignationController::class, 'update']);
+        Route::delete('/designations/{designation}', [DesignationController::class, 'destroy'])->name('designations.destroy');
+    });
 
     Route::get('/modules', fn () => redirect(ModuleSelector::getUrl(panel: 'admin')))->name('modules');
     Route::get('/inventory', fn () => redirect(InventoryDashboard::getUrl(panel: 'admin')))->name('inventory.dashboard');

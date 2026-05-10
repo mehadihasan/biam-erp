@@ -1,8 +1,19 @@
-<x-filament-panels::page>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ __('Add New User') }}</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        .user-create-form {
+        .user-create-page {
             width: 100%;
             max-width: 756px;
+            padding: 28px 10px;
+        }
+
+        .user-create-form {
+            width: 100%;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
             background: #ffffff;
@@ -107,8 +118,12 @@
         }
 
         @media (max-width: 767px) {
-            .user-create-form {
+            .user-create-page {
                 max-width: none;
+                padding: 24px 12px;
+            }
+
+            .user-create-form {
                 padding: 24px 18px;
             }
 
@@ -126,44 +141,22 @@
                 width: 100%;
             }
         }
-
-        .dark .user-create-form {
-            border-color: #334155;
-            background: #111827;
-        }
-
-        .dark .user-create-form__field,
-        .dark .user-create-form__checkbox {
-            color: #ffffff;
-        }
-
-        .dark .user-create-form__control {
-            border-color: #475569;
-            background-color: #1f2937;
-            color: #ffffff;
-        }
-
-        .dark .user-create-form__cancel {
-            border-color: #475569;
-            background: #111827;
-            color: #ffffff;
-        }
     </style>
-
-    <div class="space-y-4">
-        <div>
-            <h2 class="text-xl font-bold text-gray-950 dark:text-white">Add New User</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Create a hostel user profile</p>
+</head>
+<body class="bg-gray-50 text-gray-950">
+    <main class="user-create-page">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold">{{ __('Add New User') }}</h1>
         </div>
 
         @if (session('success'))
-            <div class="max-w-4xl rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                 {{ session('success') }}
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="max-w-4xl rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {{ __('Please fix the highlighted fields and try again.') }}
             </div>
         @endif
@@ -173,25 +166,25 @@
 
             <div class="user-create-form__grid">
                 <label class="user-create-form__field">
-                    <span>Full Name <span class="user-create-form__required">*</span></span>
+                    <span>{{ __('Full Name') }} <span class="user-create-form__required">*</span></span>
                     <input name="full_name" type="text" value="{{ old('full_name') }}" class="user-create-form__control">
                     @error('full_name') <span class="user-create-form__error">{{ $message }}</span> @enderror
                 </label>
 
                 <label class="user-create-form__field">
-                    <span>Email <span class="user-create-form__required">*</span></span>
+                    <span>{{ __('Email') }} <span class="user-create-form__required">*</span></span>
                     <input name="email" type="email" value="{{ old('email') }}" class="user-create-form__control">
                     @error('email') <span class="user-create-form__error">{{ $message }}</span> @enderror
                 </label>
 
                 <label class="user-create-form__field">
-                    <span>Phone <span class="user-create-form__required">*</span></span>
+                    <span>{{ __('Phone') }} <span class="user-create-form__required">*</span></span>
                     <input name="phone" type="text" value="{{ old('phone') }}" class="user-create-form__control">
                     @error('phone') <span class="user-create-form__error">{{ $message }}</span> @enderror
                 </label>
 
                 <label class="user-create-form__field">
-                    <span>Role <span class="user-create-form__required">*</span></span>
+                    <span>{{ __('Role') }} <span class="user-create-form__required">*</span></span>
                     <select name="role" class="user-create-form__control">
                         @foreach (['Super admin', 'admin', 'staff', 'guest'] as $role)
                             <option value="{{ $role }}" @selected(old('role', 'guest') === $role)>{{ $role }}</option>
@@ -201,9 +194,9 @@
                 </label>
 
                 <label class="user-create-form__field">
-                    <span>Designation <span class="user-create-form__required">*</span></span>
+                    <span>{{ __('Designation') }} <span class="user-create-form__required">*</span></span>
                     <select name="designation_id" class="user-create-form__control">
-                        <option value="">Select designation</option>
+                        <option value="">{{ __('Select designation') }}</option>
                         @foreach ($designations as $designation)
                             <option value="{{ $designation->id }}" @selected((string) old('designation_id') === (string) $designation->id)>{{ $designation->name }}</option>
                         @endforeach
@@ -212,16 +205,17 @@
                 </label>
 
                 <label class="user-create-form__field">
-                    <span>Office ID <span class="user-create-form__required">*</span></span>
-                    <input name="cadre_number" type="text" value="{{ old('cadre_number') }}" placeholder="Office ID" class="user-create-form__control">
+                    <span>{{ __('Office ID') }} <span class="user-create-form__required">*</span></span>
+                    <input name="cadre_number" type="text" value="{{ old('cadre_number') }}" placeholder="{{ __('Office ID') }}" class="user-create-form__control">
                     @error('cadre_number') <span class="user-create-form__error">{{ $message }}</span> @enderror
                 </label>
             </div>
 
             <div class="user-create-form__actions">
-                <button class="user-create-form__button">Create User</button>
-                <a href="{{ \App\Filament\Pages\Hostel\Users\AllUsers::getUrl(panel: 'admin') }}" class="user-create-form__cancel">Cancel</a>
+                <button class="user-create-form__button">{{ __('Create User') }}</button>
+                <a href="{{ \App\Filament\Pages\Hostel\Users\AllUsers::getUrl(panel: 'admin') }}" class="user-create-form__cancel">{{ __('Cancel') }}</a>
             </div>
         </form>
-    </div>
-</x-filament-panels::page>
+    </main>
+</body>
+</html>
