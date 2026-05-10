@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BcsCadreAuthController;
 use App\Http\Controllers\BcsCadrePortalController;
+use App\Http\Controllers\BookingCheckInOutController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\LandingLoginController;
@@ -76,6 +77,9 @@ Route::middleware(['web', 'auth'])->group(function () {
 
         Route::post('/maintenance', [RoomMaintenanceController::class, 'store'])->name('maintenance.store');
         Route::patch('/maintenance/{room}/available', [RoomMaintenanceController::class, 'markAvailable'])->name('maintenance.available');
+
+        Route::patch('/check-in-out/{booking}/check-in', [BookingCheckInOutController::class, 'checkIn'])->name('check-in-out.check-in');
+        Route::patch('/check-in-out/{booking}/check-out', [BookingCheckInOutController::class, 'checkOut'])->name('check-in-out.check-out');
     });
 
     Route::get('/modules', fn () => redirect(ModuleSelector::getUrl(panel: 'admin')))->name('modules');

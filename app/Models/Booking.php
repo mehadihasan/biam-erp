@@ -22,6 +22,8 @@ class Booking extends Model
         'booking_money',
         'total_rent',
         'status',
+        'checked_in_at',
+        'checked_out_at',
     ];
 
     protected function casts(): array
@@ -36,6 +38,8 @@ class Booking extends Model
             'calculated_rent' => 'decimal:2',
             'booking_money' => 'decimal:2',
             'total_rent' => 'decimal:2',
+            'checked_in_at' => 'datetime',
+            'checked_out_at' => 'datetime',
         ];
     }
 

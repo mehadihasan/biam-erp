@@ -52,6 +52,7 @@ class NewBooking extends BaseHostelPage
             ->get();
 
         $this->rooms = Room::query()
+            ->where('status', 'available')
             ->orderBy('room_number')
             ->get();
 

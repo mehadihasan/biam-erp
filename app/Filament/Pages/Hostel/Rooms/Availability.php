@@ -64,6 +64,7 @@ class Availability extends BaseHostelPage
                     $subQuery->selectRaw('1')
                         ->from('bookings')
                         ->whereColumn('bookings.room_id', 'rooms.id')
+                        ->whereNotIn('bookings.status', ['cancelled', 'checked_out', 'completed'])
                         ->where($columns['check_in'], '<', $this->checkOutDate)
                         ->where($columns['check_out'], '>', $this->checkInDate);
                 });

@@ -12,6 +12,7 @@
             <x-filament::button
                 tag="a"
                 :href="\App\Filament\Pages\Hostel\Bookings\NewBooking::getUrl(panel: 'admin')"
+                style="background-color: #173c63; color: #ffffff;"
             >
                 New Booking
             </x-filament::button>
