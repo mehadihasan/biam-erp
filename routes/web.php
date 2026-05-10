@@ -5,6 +5,7 @@ use App\Http\Controllers\BcsCadrePortalController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\LandingLoginController;
+use App\Http\Controllers\RoomMaintenanceController;
 use App\Http\Controllers\UserController;
 use App\Filament\Pages\Hostel\Bookings\AllBookings;
 use App\Filament\Pages\Hostel\Bookings\Calendar;
@@ -72,6 +73,9 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::put('/designations/{designation}', [DesignationController::class, 'update'])->name('designations.update');
         Route::patch('/designations/{designation}', [DesignationController::class, 'update']);
         Route::delete('/designations/{designation}', [DesignationController::class, 'destroy'])->name('designations.destroy');
+
+        Route::post('/maintenance', [RoomMaintenanceController::class, 'store'])->name('maintenance.store');
+        Route::patch('/maintenance/{room}/available', [RoomMaintenanceController::class, 'markAvailable'])->name('maintenance.available');
     });
 
     Route::get('/modules', fn () => redirect(ModuleSelector::getUrl(panel: 'admin')))->name('modules');

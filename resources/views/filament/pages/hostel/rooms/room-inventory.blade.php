@@ -8,6 +8,7 @@
             <x-filament::button
                 tag="a"
                 :href="\App\Filament\Pages\Hostel\Rooms\NewRoom::getUrl(panel: 'admin')"
+                style="background-color: #173c63; color: #ffffff;"
             >
                 + Add Room
             </x-filament::button>
@@ -69,7 +70,8 @@
                                 href="{{ $editUrl }}"
                                 title="{{ __('Edit') }}"
                                 aria-label="{{ __('Edit room') }}"
-                                class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/95 text-gray-700 shadow-sm ring-1 ring-gray-200 hover:bg-white dark:bg-gray-950/90 dark:text-gray-100 dark:ring-gray-700"
+                                class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-white shadow-sm ring-1 ring-gray-200 hover:opacity-90 dark:ring-gray-700"
+                                style="background-color: #173c63;"
                             >
                                 <x-filament::icon icon="heroicon-o-pencil-square" class="size-4" />
                             </a>
@@ -130,7 +132,8 @@
                         </p>
 
                         <a
-                            class="mt-4 rounded-lg bg-[#1f4a73] bg-primary py-2 text-center text-sm font-medium text-white text-primary-foreground hover:opacity-90"
+                            class="mt-4 rounded-lg py-2 text-center text-sm font-medium text-white hover:opacity-90"
+                            style="background-color: #173c63;"
                             href="{{ $detailUrl }}"
                         >
                             Room Details

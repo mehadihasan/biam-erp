@@ -9,7 +9,7 @@
                 {{ $this->form }}
 
                 <div class="flex gap-3">
-                    <x-filament::button type="submit">
+                    <x-filament::button type="submit" style="background-color: #173c63; color: #ffffff;">
                         {{ $record ? 'Update Room' : 'Create Room' }}
                     </x-filament::button>
 

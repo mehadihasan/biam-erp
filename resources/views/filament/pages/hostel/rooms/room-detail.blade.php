@@ -103,7 +103,11 @@
             </div>
 
             <div class="flex flex-wrap gap-3">
-                <x-filament::button tag="a" :href="\App\Filament\Pages\Hostel\Rooms\NewRoom::getUrl(panel: 'admin', parameters: ['record' => $room->id])">
+                <x-filament::button
+                    tag="a"
+                    :href="\App\Filament\Pages\Hostel\Rooms\NewRoom::getUrl(panel: 'admin', parameters: ['record' => $room->id])"
+                    style="background-color: #173c63; color: #ffffff;"
+                >
                     Edit room
                 </x-filament::button>
                 <x-filament::button color="gray" tag="a" :href="\App\Filament\Pages\Hostel\Rooms\RoomInventory::getUrl(panel: 'admin')">
