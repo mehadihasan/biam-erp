@@ -7,248 +7,13 @@
     <title>{{ config('app.name', 'BIAM Hostel Management System') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet">
-    <style>
-        :root {
-            --biam-navy: #1e3a5f;
-            --biam-page: #f5f5f5;
-            --biam-card: #ffffff;
-            --biam-input: #f9f9f9;
-            --biam-muted: #6b7280;
-            --biam-label: #374151;
-            --biam-heading: #111827;
-            --biam-footer: rgba(255, 255, 255, 0.55);
-            --biam-shadow: 0 12px 40px rgba(30, 58, 95, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
-            --radius-card: 16px;
-            --radius-control: 10px;
-        }
-
-        *, *::before, *::after { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-            color: var(--biam-heading);
-            background: var(--biam-page);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .landing {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        @media (min-width: 900px) {
-            .landing {
-                flex-direction: row;
-            }
-        }
-
-        .panel-brand {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 2.5rem 1.5rem 4rem;
-            background: var(--biam-navy);
-            color: #fff;
-            position: relative;
-        }
-
-        @media (min-width: 900px) {
-            .panel-brand {
-                padding: 3rem 2rem;
-                min-height: 100vh;
-            }
-        }
-
-        .panel-brand__inner {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.25rem;
-            max-width: 28rem;
-        }
-
-        .panel-brand__logo {
-            width: 140px;
-            height: 140px;
-            object-fit: contain;
-            border-radius: 50%;
-        }
-
-        .panel-brand__title {
-            font-size: clamp(1.35rem, 3vw, 1.85rem);
-            font-weight: 700;
-            line-height: 1.25;
-            letter-spacing: -0.02em;
-        }
-
-        .panel-brand__subtitle {
-            font-size: 0.95rem;
-            font-weight: 400;
-            line-height: 1.5;
-            opacity: 0.92;
-            max-width: 22rem;
-        }
-
-        .panel-brand__footer {
-            position: absolute;
-            bottom: 1.25rem;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--biam-footer);
-        }
-
-        .panel-form {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1.25rem 3rem;
-            background: var(--biam-page);
-        }
-
-        @media (min-width: 900px) {
-            .panel-form {
-                min-height: 100vh;
-                padding: 2rem;
-            }
-        }
-
-        .card {
-            width: 100%;
-            max-width: 420px;
-            background: var(--biam-card);
-            border-radius: var(--radius-card);
-            box-shadow: var(--biam-shadow);
-            padding: 2.5rem 2rem;
-        }
-
-        @media (min-width: 480px) {
-            .card {
-                padding: 2.75rem 2.5rem;
-            }
-        }
-
-        .card__heading {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--biam-navy);
-            letter-spacing: -0.02em;
-            margin: 0 0 0.35rem;
-        }
-
-        .card__sub {
-            font-size: 0.95rem;
-            color: var(--biam-muted);
-            margin: 0 0 1.75rem;
-        }
-
-        .field {
-            margin-bottom: 1.25rem;
-        }
-
-        .field label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--biam-label);
-            margin-bottom: 0.45rem;
-        }
-
-        .field__wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .field input[type="email"],
-        .field input[type="password"],
-        .field input[type="text"] {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            font-size: 0.95rem;
-            border: 1px solid transparent;
-            border-radius: var(--radius-control);
-            background: var(--biam-input);
-            color: var(--biam-heading);
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .field input[type="password"] {
-            padding-right: 2.75rem;
-        }
-
-        .field input::placeholder {
-            color: #9ca3af;
-        }
-
-        .field input:focus {
-            outline: none;
-            border-color: rgba(30, 58, 95, 0.35);
-            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12);
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 0.65rem;
-            top: 50%;
-            transform: translateY(-50%);
-            padding: 0.35rem;
-            border: none;
-            background: none;
-            cursor: pointer;
-            color: var(--biam-muted);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .toggle-password:hover {
-            color: var(--biam-label);
-            background: rgba(0, 0, 0, 0.04);
-        }
-
-        .alert {
-            font-size: 0.875rem;
-            color: #b91c1c;
-            background: #fef2f2;
-            border-radius: var(--radius-control);
-            padding: 0.65rem 0.85rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .btn-submit {
-            width: 100%;
-            margin-top: 0.25rem;
-            padding: 0.85rem 1rem;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #fff;
-            background: var(--biam-navy);
-            border: none;
-            border-radius: var(--radius-control);
-            cursor: pointer;
-            transition: background 0.15s ease, transform 0.05s ease;
-        }
-
-        .btn-submit:hover {
-            background: #162d4a;
-        }
-
-        .btn-submit:active {
-            transform: scale(0.99);
-        }
-    </style>
+    @vite(['resources/css/welcome.css', 'resources/js/welcome.js'])
 </head>
 <body>
+    @php
+        $modalErrorKeys = ['otp', 'guest_otp'];
+        $firstMainErrorKey = collect($errors->keys())->first(fn ($k) => ! in_array($k, $modalErrorKeys, true));
+    @endphp
     <div class="landing">
         <aside class="panel-brand" aria-label="{{ __('Branding') }}">
             <div class="panel-brand__inner">
@@ -266,77 +31,323 @@
         </aside>
 
         <main class="panel-form">
-            <div class="card">
-                <h2 class="card__heading">Welcome Back</h2>
-                <p class="card__sub">Sign in to continue</p>
+            <header class="panel-form__header">
+                <nav class="welcome-topnav" aria-label="{{ __('Quick links') }}">
+                    @if ($panelView === 'cadre')
+                        <a href="{{ route('home', ['view' => 'guest']) }}" class="welcome-topnav__link">{{ __('Guest login') }}</a>
+                        <a href="{{ route('home', ['view' => 'staff']) }}" class="welcome-topnav__link">{{ __('Admin login') }}</a>
+                    @elseif ($panelView === 'staff')
+                        <a href="{{ route('home') }}" class="welcome-topnav__link">{{ __('BCS Cadre Login') }}</a>
+                        <a href="{{ route('home', ['view' => 'guest']) }}" class="welcome-topnav__link">{{ __('Guest login') }}</a>
+                    @else
+                        <a href="{{ route('home') }}" class="welcome-topnav__link">{{ __('BCS Cadre Login') }}</a>
+                        <a href="{{ route('home', ['view' => 'staff']) }}" class="welcome-topnav__link">{{ __('Admin login') }}</a>
+                    @endif
+                </nav>
+            </header>
+            <div class="panel-form__body">
+                <div class="card">
+                    @if ($firstMainErrorKey)
+                        <div class="alert" role="alert">
+                            {{ $errors->first($firstMainErrorKey) }}
+                        </div>
+                    @endif
 
-                @if ($errors->any())
-                    <div class="alert" role="alert">
-                        {{ $errors->first() }}
-                    </div>
-                @endif
+                    @if (session('guest_application_success'))
+                        <div class="alert alert--success" role="status">
+                            {{ __('Your guest application has been submitted successfully.') }}
+                        </div>
+                    @endif
 
-                <form method="post" action="{{ route('site.login') }}" novalidate>
-                    @csrf
-
-                    <div class="field">
-                        <label for="email">Username</label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value="{{ old('email') }}"
-                            placeholder="Enter your username"
-                            autocomplete="username"
-                            required
-                            autofocus
-                        >
-                    </div>
-
-                    <div class="field">
-                        <label for="password">Password</label>
-                        <div class="field__wrap">
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                placeholder="Enter your password"
-                                autocomplete="current-password"
-                                required
-                            >
-                            <button
-                                type="button"
-                                class="toggle-password"
-                                aria-label="{{ __('Show password') }}"
-                                data-visible-label="{{ __('Hide password') }}"
-                                data-hidden-label="{{ __('Show password') }}"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    @if ($panelView === 'cadre')
+                        <div class="card__title-row">
+                            <span class="card__title-icon" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
                                 </svg>
+                            </span>
+                            <div>
+                                <h2 class="card__heading">{{ __('BCS Cadre Login') }}</h2>
+                                <p class="card__sub">{{ __('Sign in with your GEMS Cadre Reference') }}</p>
+                            </div>
+                        </div>
+
+                        <form method="post" action="{{ route('cadre.login.store') }}" novalidate>
+                            @csrf
+                            <div class="field">
+                                <label for="cadre_reference">{{ __('Cadre Reference ID') }}</label>
+                                <input
+                                    id="cadre_reference"
+                                    name="cadre_reference"
+                                    type="text"
+                                    value="{{ old('cadre_reference', $demoCadreReference) }}"
+                                    placeholder="{{ __('e.g. :ref', ['ref' => $demoCadreReference]) }}"
+                                    inputmode="numeric"
+                                    autocomplete="username"
+                                    readonly
+                                >
+                            </div>
+                            <button type="submit" class="btn-submit">{{ __('Submit') }}</button>
+                        </form>
+
+                        <div class="cadre-demo">
+                            <div class="cadre-demo__head">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                                </svg>
+                                {{ __('Demo Credentials') }}
+                            </div>
+                            <p class="cadre-demo__text">
+                                {{ __('Cadre Reference:') }} <strong>{{ $demoCadreReference }}</strong>
+                                <span aria-hidden="true"> | </span>
+                                {{ __('OTP:') }} <strong>{{ $demoOtp }}</strong>
+                            </p>
+                            <button type="button" class="cadre-demo__autofill" data-welcome-cadre-autofill data-demo-cadre="{{ $demoCadreReference }}">
+                                {{ __('Auto-fill') }}
                             </button>
                         </div>
-                    </div>
+                    @elseif ($panelView === 'guest')
+                        <div class="card__title-row">
+                            <span class="card__title-icon" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75m8.25 0V4.5A2.25 2.25 0 0 0 15.75 2.25h-7.5A2.25 2.25 0 0 0 6 4.5v3.75m12 0V19.5A2.25 2.25 0 0 1 15.75 21.75h-7.5A2.25 2.25 0 0 1 6 19.5V8.25m12 0H6" />
+                                </svg>
+                            </span>
+                            <div>
+                                <h2 class="card__heading">{{ __('Guest Booking Application') }}</h2>
+                                <p class="card__sub">{{ __('Submit your application to book a hostel room as a guest of a BCS officer.') }}</p>
+                            </div>
+                        </div>
 
-                    <button type="submit" class="btn-submit">Sign In</button>
-                </form>
+                        @if (! session('guest_application_success'))
+                            <form
+                                method="post"
+                                action="{{ route('guest.application.store') }}"
+                                enctype="multipart/form-data"
+                                novalidate
+                            >
+                                @csrf
+                                <div class="field">
+                                    <label for="guest_full_name">{{ __('Full Name') }}</label>
+                                    <input
+                                        id="guest_full_name"
+                                        name="guest_full_name"
+                                        type="text"
+                                        value="{{ old('guest_full_name') }}"
+                                        placeholder="{{ __('Enter your full name') }}"
+                                        autocomplete="name"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <label for="guest_mobile_no">{{ __('Mobile No') }}</label>
+                                    <input
+                                        id="guest_mobile_no"
+                                        name="guest_mobile_no"
+                                        type="text"
+                                        value="{{ old('guest_mobile_no') }}"
+                                        placeholder="{{ __('Enter your mobile no') }}"
+                                        inputmode="tel"
+                                        autocomplete="tel"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <label for="guest_email">{{ __('Email') }}</label>
+                                    <input
+                                        id="guest_email"
+                                        name="guest_email"
+                                        type="email"
+                                        value="{{ old('guest_email') }}"
+                                        placeholder="{{ __('Enter your email (optional)') }}"
+                                        autocomplete="email"
+                                    >
+                                </div>
+
+                                <div class="field">
+                                    <span class="field__label">{{ __('Upload your application scan copy') }}</span>
+                                    <label class="guest-upload" for="guest_application_scan">
+                                        <input
+                                            id="guest_application_scan"
+                                            class="guest-upload__input"
+                                            type="file"
+                                            name="application_scan"
+                                            accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                                        >
+                                        <span class="guest-upload__ui" aria-hidden="true">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                                            </svg>
+                                            <span class="guest-upload__prompt">{{ __('Choose file (PDF/JPG/PNG)') }}</span>
+                                            <span class="guest-upload__filename" data-guest-upload-filename hidden></span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="field">
+                                    <label for="guest_cadre_reference">{{ __('Reference ID (BCS Cadre)') }}</label>
+                                    <input
+                                        id="guest_cadre_reference"
+                                        name="guest_cadre_reference"
+                                        type="text"
+                                        value="{{ old('guest_cadre_reference', $demoCadreReference) }}"
+                                        placeholder="{{ __('e.g. :ref', ['ref' => $demoCadreReference]) }}"
+                                        inputmode="numeric"
+                                        autocomplete="off"
+                                    >
+                                </div>
+                                <button type="submit" class="btn-submit">{{ __('Submit Application') }}</button>
+                            </form>
+
+                            <div class="cadre-demo">
+                                <div class="cadre-demo__head">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                                    </svg>
+                                    {{ __('Demo') }}
+                                </div>
+                                <p class="cadre-demo__text">
+                                    {{ __('Reference:') }} <strong>{{ $demoCadreReference }}</strong>
+                                    <span aria-hidden="true"> | </span>
+                                    {{ __('OTP:') }} <strong>{{ $demoOtp }}</strong>
+                                </p>
+                                <button type="button" class="cadre-demo__autofill" data-guest-demo-autofill data-demo-ref="{{ $demoCadreReference }}">
+                                    {{ __('Auto-fill') }}
+                                </button>
+                            </div>
+                        @endif
+                    @else
+                        <h2 class="card__heading">{{ __('Welcome Back') }}</h2>
+                        <p class="card__sub">{{ __('Sign in to continue') }}</p>
+
+                        <form method="post" action="{{ route('site.login') }}" novalidate>
+                            @csrf
+
+                            <div class="field">
+                                <label for="email">{{ __('Username') }}</label>
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value="{{ old('email') }}"
+                                    placeholder="{{ __('Enter your username') }}"
+                                    autocomplete="username"
+                                    required
+                                    autofocus
+                                >
+                            </div>
+
+                            <div class="field">
+                                <label for="password">{{ __('Password') }}</label>
+                                <div class="field__wrap">
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        placeholder="{{ __('Enter your password') }}"
+                                        autocomplete="current-password"
+                                        required
+                                    >
+                                    <button
+                                        type="button"
+                                        class="toggle-password"
+                                        aria-label="{{ __('Show password') }}"
+                                        data-visible-label="{{ __('Hide password') }}"
+                                        data-hidden-label="{{ __('Show password') }}"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-submit">{{ __('Sign In') }}</button>
+                        </form>
+                    @endif
+                </div>
             </div>
         </main>
     </div>
 
-    <script>
-        (function () {
-            var input = document.getElementById('password');
-            var btn = document.querySelector('.toggle-password');
-            if (!input || !btn) return;
+    <div
+        class="modal{{ $showCadreOtpModal ? ' modal--open' : '' }}"
+        id="cadre-otp-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cadre-otp-modal-title"
+    >
+        <div class="modal__backdrop" tabindex="-1"></div>
+        <div class="modal__panel">
+            <h2 class="modal__title" id="cadre-otp-modal-title">{{ __('Enter OTP') }}</h2>
+            <p class="modal__lead">{{ __('An OTP has been sent to your registered mobile number in GEMS.') }}</p>
+            @error('otp')
+                <div class="alert" role="alert">{{ $message }}</div>
+            @enderror
+            <form method="post" action="{{ route('cadre.otp.verify') }}" class="modal__form" novalidate>
+                @csrf
+                <div class="field field--otp">
+                    <label class="sr-only" for="cadre_otp">{{ __('One-time password') }}</label>
+                    <input
+                        id="cadre_otp"
+                        name="otp"
+                        type="text"
+                        value="{{ old('otp') }}"
+                        placeholder="{{ __('Enter 5-digit OTP') }}"
+                        inputmode="numeric"
+                        maxlength="5"
+                        pattern="[0-9]{5}"
+                        autocomplete="one-time-code"
+                        required
+                    >
+                </div>
+                <div class="modal__actions">
+                    <a href="{{ route('cadre.otp.cancel') }}" class="btn-secondary">{{ __('Cancel') }}</a>
+                    <button type="submit" class="btn-submit btn-submit--inline">{{ __('Verify') }}</button>
+                </div>
+            </form>
+            <p class="modal__hint">{{ __('Demo OTP:') }} {{ $demoOtp }}</p>
+        </div>
+    </div>
 
-            btn.addEventListener('click', function () {
-                var showing = input.type === 'password';
-                input.type = showing ? 'text' : 'password';
-                btn.setAttribute('aria-label', showing ? btn.dataset.visibleLabel : btn.dataset.hiddenLabel);
-            });
-        })();
-    </script>
+    <div
+        class="modal{{ $showGuestOtpModal ? ' modal--open' : '' }}"
+        id="guest-otp-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="guest-otp-modal-title"
+    >
+        <div class="modal__backdrop" tabindex="-1"></div>
+        <div class="modal__panel">
+            <h2 class="modal__title" id="guest-otp-modal-title">{{ __('Enter OTP') }}</h2>
+            <p class="modal__lead">{{ __('An OTP has been sent to your registered mobile number in GEMS.') }}</p>
+            @error('guest_otp')
+                <div class="alert" role="alert">{{ $message }}</div>
+            @enderror
+            <form method="post" action="{{ route('guest.otp.verify') }}" class="modal__form" novalidate>
+                @csrf
+                <div class="field field--otp">
+                    <label class="sr-only" for="guest_otp">{{ __('One-time password') }}</label>
+                    <input
+                        id="guest_otp"
+                        name="guest_otp"
+                        type="text"
+                        value="{{ old('guest_otp') }}"
+                        placeholder="{{ __('Enter 5-digit OTP') }}"
+                        inputmode="numeric"
+                        maxlength="5"
+                        pattern="[0-9]{5}"
+                        autocomplete="one-time-code"
+                        required
+                    >
+                </div>
+                <div class="modal__actions">
+                    <a href="{{ route('guest.otp.cancel') }}" class="btn-secondary">{{ __('Cancel') }}</a>
+                    <button type="submit" class="btn-submit btn-submit--inline">{{ __('Verify') }}</button>
+                </div>
+            </form>
+            <p class="modal__hint">{{ __('Demo OTP:') }} {{ $demoOtp }}</p>
+        </div>
+    </div>
 </body>
 </html>

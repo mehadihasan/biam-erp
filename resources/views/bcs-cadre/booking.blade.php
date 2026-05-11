@@ -1,0 +1,77 @@
+@extends('layouts.bcs-cadre')
+
+@section('title', __('Booking & Reservation'))
+
+@section('content')
+    <div class="bcs-page">
+        <header class="bcs-page__header">
+            <h1>{{ __('Choose your room') }}</h1>
+            <p>{{ __('Browse available rooms and submit your booking.') }}</p>
+        </header>
+
+        <section class="bcs-search-card" aria-label="{{ __('Booking search') }}">
+            <div class="bcs-search-field">
+                <span class="bcs-search-field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M8 14h4M8 18h8"></path></svg>
+                </span>
+                <div>
+                    <strong>{{ now()->format('m/d/Y') }}</strong>
+                    <span>{{ now()->format('l') }}</span>
+                </div>
+                <input type="date" value="{{ now()->toDateString() }}" aria-label="{{ __('Check-in date') }}">
+            </div>
+
+            <div class="bcs-search-field">
+                <span class="bcs-search-field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M8 14l2 2 4-4"></path></svg>
+                </span>
+                <div>
+                    <strong>{{ now()->addDay()->format('m/d/Y') }}</strong>
+                    <span>{{ now()->addDay()->format('l') }}</span>
+                </div>
+                <input type="date" value="{{ now()->addDay()->toDateString() }}" aria-label="{{ __('Check-out date') }}">
+            </div>
+
+            <div class="bcs-search-field bcs-search-field--split">
+                <span class="bcs-search-field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </span>
+                <strong>{{ __('2 adults') }}</strong>
+                <span>{{ __('1 room') }}</span>
+            </div>
+
+            <button type="button" class="bcs-action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                {{ __('SEARCH') }}
+            </button>
+        </section>
+
+        <section class="bcs-room-grid">
+            @forelse ($rooms as $room)
+                @php
+                    $typeLabel = match ($room->room_type) {
+                        'vip' => 'VIP',
+                        'ac' => 'AC',
+                        'non_ac' => 'Non-AC',
+                        default => ucfirst(str_replace('_', ' ', $room->room_type)),
+                    };
+                @endphp
+                <article class="bcs-room-card">
+                    <img src="{{ $room->listingThumbnailUrl() }}" alt="{{ __('Room :number', ['number' => $room->room_number]) }}">
+                    <div class="bcs-room-card__body">
+                        <div class="bcs-room-card__title">
+                            <h2>{{ __('Room :number', ['number' => $room->room_number]) }}</h2>
+                            <span>{{ $typeLabel }}</span>
+                        </div>
+                        <p class="bcs-room-card__meta">{{ __('Capacity :capacity', ['capacity' => $room->capacity]) }} &bull; {{ __('Floor :floor', ['floor' => $room->floor]) }}</p>
+                        <p class="bcs-room-card__desc">{{ $room->description ?: __('Available hostel room') }}</p>
+                        <p class="bcs-room-card__price">{{ __('BDT :amount / night', ['amount' => number_format((float) $room->base_rate, 0)]) }}</p>
+                        <a href="#" class="bcs-card-btn">{{ __('Room Details') }}</a>
+                    </div>
+                </article>
+            @empty
+                <div class="bcs-empty">{{ __('No available rooms found.') }}</div>
+            @endforelse
+        </section>
+    </div>
+@endsection

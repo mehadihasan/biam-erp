@@ -1,0 +1,192 @@
+/*
+ * Filament Admin theme
+ *
+ * IMPORTANT: This file is the panel theme entrypoint (via ->viteTheme()).
+ * It must include Filament's base theme first, then our overrides.
+ */
+
+@import '../../../vendor/filament/filament/resources/css/theme.css';
+
+/*
+ * Ensure Tailwind picks up utility classes used inside our custom Filament page views.
+ * Without this, production builds can purge the dashboard layout classes, resulting in "plain text".
+ */
+@source "../../../views/filament/pages/**/*.blade.php";
+
+/* Sidebar */
+.fi-sidebar {
+    background-color: #153a57 !important;
+    width: 260px !important; /* reduced sidebar width */
+}
+
+.fi-sidebar-header {
+    background-color: #153a57 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.fi-sidebar-header .fi-logo,
+.fi-sidebar-header .fi-logo * {
+    color: #ffffff !important;
+}
+
+/* Navigation text */
+.fi-sidebar-nav,
+.fi-sidebar-nav * {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+/* Main menu (group headers): icon on the left + clean spacing */
+.fi-sidebar-group-btn {
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    line-height: 1.25 !important;
+}
+
+.fi-sidebar-group-btn .fi-sidebar-group-label {
+    font-weight: 600 !important;
+    letter-spacing: 0.1px;
+}
+
+/* Parent icon (CSS-only). Uses per-group SVG masks below. */
+.fi-sidebar-group-btn::before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    background-color: rgba(255, 255, 255, 0.9);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: 18px 18px;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: 18px 18px;
+    opacity: 0.95;
+}
+
+/* Assign a specific icon for each group label (no Filament group icons needed). */
+.fi-sidebar-group[data-group-label="User Management"] .fi-sidebar-group-btn::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4' stroke='%23000' stroke-width='2'/%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' d='M20 8v6'/%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' d='M23 11h-6'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4' stroke='%23000' stroke-width='2'/%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' d='M20 8v6'/%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' d='M23 11h-6'/%3E%3C/svg%3E");
+}
+
+.fi-sidebar-group[data-group-label="Room Management"] .fi-sidebar-group-btn::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 21V7a2 2 0 0 1 2-2h6'/%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 21V5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v16'/%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 11h0M7 15h0M16 11h0M16 15h0'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 21V7a2 2 0 0 1 2-2h6'/%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 21V5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v16'/%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 11h0M7 15h0M16 11h0M16 15h0'/%3E%3C/svg%3E");
+}
+
+.fi-sidebar-group[data-group-label="Booking & Reservation"] .fi-sidebar-group-btn::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3M5 11h14M6 21h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3M5 11h14M6 21h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z'/%3E%3C/svg%3E");
+}
+
+/* Vertical bar: show ONLY when group is expanded and extend through submenu. */
+.fi-sidebar-group::after {
+    content: '';
+    position: absolute;
+    left: 16px; /* under the icon */
+    top: 48px; /* below the group header row */
+    width: 2px;
+    height: calc(100% - 56px);
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.22);
+    display: none;
+}
+
+.fi-sidebar-group {
+    position: relative;
+}
+
+.fi-sidebar-group:not(.fi-collapsed)::after {
+    display: block;
+}
+
+/* Reduce vertical gap between groups (max ~10px) */
+.fi-sidebar-nav-groups {
+    gap: 10px !important;
+}
+
+/* Submenu items should never paint under the vertical bar */
+.fi-sidebar-group-items .fi-sidebar-item > a {
+    margin-left: 22px !important;
+    max-width: calc(100% - 22px) !important;
+    box-sizing: border-box;
+    background-clip: padding-box;
+    overflow: hidden;
+}
+
+/* Sub-menu: slightly smaller font like your screenshot */
+.fi-sidebar-group-items .fi-sidebar-item-label {
+    font-size: 0.8125rem !important; /* 13px (14px - 1px) */
+    font-weight: 500 !important;
+    opacity: 0.95;
+}
+
+.fi-sidebar-group-items .fi-sidebar-item-btn {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+/*
+ * Keep submenu aligned under the parent *text* (not under the icon).
+ * We indent submenu items to start after: parent icon (18) + gap (10) + label start.
+ */
+.fi-sidebar-group-items .fi-sidebar-item-btn {
+    padding-left: 44px !important;
+}
+
+/* Reduce extra grouped border offset so it doesn't align under icons */
+.fi-sidebar-item-grouped-border {
+    left: 28px !important;
+}
+
+.fi-sidebar-item a {
+    border-radius: 10px !important;
+}
+
+.fi-sidebar-item a:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Dashboard highlight: give top-level active item a lighter background */
+.fi-sidebar-item.fi-active:not(.fi-sidebar-item-grouped) > a {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+/* Active item */
+.fi-sidebar-item.fi-active a,
+.fi-sidebar-item a[aria-current='page'] {
+    background-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Icons */
+.fi-sidebar-item svg {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Submenu: reduce left icon size ~2px */
+.fi-sidebar-group-items .fi-sidebar-item svg {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Page background + cards (match screenshot spacing & softness) */
+.fi-body,
+.fi-main {
+    background-color: #f3f5f8 !important;
+}
+
+.fi-section,
+.fi-wi-stats-overview-stat,
+.fi-ta,
+.fi-card,
+.fi-panel,
+.fi-modal-window {
+    border-radius: 12px !important;
+    box-shadow: 0 1px 0 rgba(16, 24, 40, 0.05), 0 1px 2px rgba(16, 24, 40, 0.08) !important;
+}
+
+/* Topbar subtle border */
+.fi-topbar {
+    border-bottom: 1px solid rgba(16, 24, 40, 0.08) !important;
+}
+
