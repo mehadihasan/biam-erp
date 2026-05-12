@@ -5,6 +5,7 @@ use App\Http\Controllers\BcsCadrePortalController;
 use App\Http\Controllers\BookingCheckInOutController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\GuestBookingController;
+use App\Http\Controllers\Hostel\InvoiceDownloadController;
 use App\Http\Controllers\LandingLoginController;
 use App\Http\Controllers\RoomMaintenanceController;
 use App\Http\Controllers\UserController;
@@ -12,6 +13,13 @@ use App\Filament\Pages\Hostel\Bookings\AllBookings;
 use App\Filament\Pages\Hostel\Bookings\Calendar;
 use App\Filament\Pages\Hostel\Bookings\CheckInOut;
 use App\Filament\Pages\Hostel\Bookings\NewBooking;
+use App\Filament\Pages\Hostel\MealOrders\MenuManagement;
+use App\Filament\Pages\Hostel\MealOrders\NewMealOrder;
+use App\Filament\Pages\Hostel\MealOrders\OrderHistory;
+use App\Filament\Pages\Hostel\MealOrders\TodayMealOrders;
+use App\Filament\Pages\Hostel\Payments\AllPayments;
+use App\Filament\Pages\Hostel\Payments\GenerateInvoice;
+use App\Filament\Pages\Hostel\Payments\RevenueReport;
 use App\Filament\Pages\Hostel\Rooms\Availability;
 use App\Filament\Pages\Hostel\Rooms\Maintenance;
 use App\Filament\Pages\Hostel\Rooms\NewRoom;
@@ -94,6 +102,21 @@ Route::middleware(['web', 'auth'])->group(function () {
             Route::get('/check-in-out', fn () => redirect(CheckInOut::getUrl(panel: 'admin')))->name('checkinout');
             Route::get('/calendar', fn () => redirect(Calendar::getUrl(panel: 'admin')))->name('calendar');
         });
+
+        Route::prefix('meal-orders')->name('meal-orders.')->group(function () {
+            Route::get('/today', fn () => redirect(TodayMealOrders::getUrl(panel: 'admin')))->name('today');
+            Route::get('/new', fn () => redirect(NewMealOrder::getUrl(panel: 'admin')))->name('new');
+            Route::get('/menu', fn () => redirect(MenuManagement::getUrl(panel: 'admin')))->name('menu');
+            Route::get('/history', fn () => redirect(OrderHistory::getUrl(panel: 'admin')))->name('history');
+        });
+
+        Route::prefix('payments')->name('payments.')->group(function () {
+            Route::get('/', fn () => redirect(AllPayments::getUrl(panel: 'admin')))->name('index');
+            Route::get('/invoice', fn () => redirect(GenerateInvoice::getUrl(panel: 'admin')))->name('invoice');
+            Route::get('/revenue', fn () => redirect(RevenueReport::getUrl(panel: 'admin')))->name('revenue');
+        });
+
+        Route::get('/invoices/{booking}/download', InvoiceDownloadController::class)->name('invoices.download');
 
         Route::prefix('rooms')->name('rooms.')->group(function () {
             Route::get('/', fn () => redirect(RoomInventory::getUrl(panel: 'admin')))->name('index');

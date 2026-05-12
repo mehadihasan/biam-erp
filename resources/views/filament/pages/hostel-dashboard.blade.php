@@ -21,6 +21,25 @@
             @endforeach
         </div>
 
+        <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <h3 class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Room Status Grid</h3>
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+                @foreach ($rooms as $room)
+                    @php
+                        $statusClass = match ($room['status']) {
+                            'available' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+                            'occupied' => 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+                            default => 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+                        };
+                    @endphp
+                    <div class="rounded-lg p-3 text-center text-xs font-medium {{ $statusClass }}">
+                        <p class="font-bold">{{ $room['number'] }}</p>
+                        <p class="text-[10px]">{{ $room['type'] }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
             <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <h3 class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Room Type Distribution</h3>
@@ -117,25 +136,6 @@
                     </table>
                 </div>
             </div>
-        </div>
-
-        <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-            <h3 class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Room Status Grid</h3>
-            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-                @foreach ($rooms as $room)
-                    @php
-                        $statusClass = match ($room['status']) {
-                            'available' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
-                            'occupied' => 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
-                            default => 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
-                        };
-                    @endphp
-                    <div class="rounded-lg p-3 text-center text-xs font-medium {{ $statusClass }}">
-                        <p class="font-bold">{{ $room['number'] }}</p>
-                        <p class="text-[10px]">{{ $room['type'] }}</p>
-                    </div>
-                @endforeach
-            </div>
-        </div>
+        </div>        
     </div>
 </x-filament-panels::page>

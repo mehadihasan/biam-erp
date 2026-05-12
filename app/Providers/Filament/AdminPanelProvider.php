@@ -47,6 +47,8 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('User Management')->collapsible()->collapsed(),
                 NavigationGroup::make('Room Management')->collapsible()->collapsed(),
                 NavigationGroup::make('Booking & Reservation')->collapsible()->collapsed(),
+                NavigationGroup::make('Meal Order')->collapsible()->collapsed(),
+                NavigationGroup::make('Payment & Billing')->collapsible()->collapsed(),
                 NavigationGroup::make('Settings')->collapsible()->collapsed(),
             ])
             ->colors([

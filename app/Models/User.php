@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -35,5 +37,29 @@ class User extends Authenticatable
     public function designation(): BelongsTo
     {
         return $this->belongsTo(Designation::class);
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function activeBooking(): HasOne
+    {
+        return $this->hasOne(Booking::class)
+            ->whereIn('status', ['checked_in', 'active'])
+            ->whereNull('checked_out_at')
+            ->latestOfMany();
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'guest_id');
+    }
+
+    public function isBcsCadre(): bool
+    {
+        return filled($this->cadre_number)
+            || str_contains(strtolower((string) $this->role), 'bcs');
     }
 }

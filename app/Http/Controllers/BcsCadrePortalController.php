@@ -6,6 +6,7 @@ use App\Http\Requests\FeedbackRequest;
 use App\Http\Requests\MealOrderRequest;
 use App\Models\Feedback;
 use App\Models\MealOrder;
+use App\Models\MenuItem;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,13 +52,22 @@ class BcsCadrePortalController extends Controller
     public function storeMealOrder(MealOrderRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $unitPrice = $this->mealOptions()[$validated['menu_item']]['price'] ?? 0;
+        $menuItem = MenuItem::query()
+            ->where('name', $validated['menu_item'])
+            ->where('meal_type', $validated['meal_type'])
+            ->where('is_active', true)
+            ->first();
+        $unitPrice = $menuItem ? (float) $menuItem->price_bcs : ($this->mealOptions()[$validated['menu_item']]['price'] ?? 0);
+        $reference = $this->uniqueMealReference();
 
         MealOrder::query()->create([
             ...$validated,
             'cadre_reference' => BcsCadreAuthController::DEMO_CADRE_REFERENCE,
-            'reference' => $this->uniqueMealReference(),
+            'ref' => $reference,
+            'reference' => $reference,
+            'menu_item_id' => $menuItem?->id,
             'unit_price' => $unitPrice,
+            'total_price' => $unitPrice * (int) $validated['quantity'],
             'total' => $unitPrice * (int) $validated['quantity'],
             'status' => 'pending',
         ]);
@@ -70,11 +80,18 @@ class BcsCadrePortalController extends Controller
         $this->abortIfDifferentCadre($mealOrder->cadre_reference);
 
         $validated = $request->validated();
-        $unitPrice = $this->mealOptions()[$validated['menu_item']]['price'] ?? 0;
+        $menuItem = MenuItem::query()
+            ->where('name', $validated['menu_item'])
+            ->where('meal_type', $validated['meal_type'])
+            ->where('is_active', true)
+            ->first();
+        $unitPrice = $menuItem ? (float) $menuItem->price_bcs : ($this->mealOptions()[$validated['menu_item']]['price'] ?? 0);
 
         $mealOrder->update([
             ...$validated,
+            'menu_item_id' => $menuItem?->id,
             'unit_price' => $unitPrice,
+            'total_price' => $unitPrice * (int) $validated['quantity'],
             'total' => $unitPrice * (int) $validated['quantity'],
         ]);
 
@@ -181,12 +198,29 @@ class BcsCadrePortalController extends Controller
 
     private function mealOptions(): array
     {
+        $items = MenuItem::query()
+            ->where('is_active', true)
+            ->orderBy('meal_type')
+            ->orderBy('name')
+            ->get();
+
+        if ($items->isNotEmpty()) {
+            return $items
+                ->mapWithKeys(fn (MenuItem $item): array => [
+                    $item->name => [
+                        'meal' => $item->meal_type,
+                        'price' => (float) $item->price_bcs,
+                    ],
+                ])
+                ->all();
+        }
+
         return [
             'Paratha set' => ['meal' => 'breakfast', 'price' => 50],
             'Rice and chicken' => ['meal' => 'lunch', 'price' => 100],
             'Vegetable khichuri' => ['meal' => 'lunch', 'price' => 80],
-            'Rice and fish' => ['meal' => 'dinner', 'price' => 120],
-            'Light dinner' => ['meal' => 'dinner', 'price' => 70],
+            'Rice and fish' => ['meal' => 'supper', 'price' => 120],
+            'Light supper' => ['meal' => 'supper', 'price' => 70],
         ];
     }
 

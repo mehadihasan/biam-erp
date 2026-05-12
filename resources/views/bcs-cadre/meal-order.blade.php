@@ -25,7 +25,7 @@
                 <label>
                     <span>{{ __('Meal Type') }} <em>*</em></span>
                     <select name="meal_type" required>
-                        @foreach (['breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'dinner' => 'Dinner'] as $value => $label)
+                        @foreach (['breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'supper' => 'Supper'] as $value => $label)
                             <option value="{{ $value }}" @selected(old('meal_type', $editingOrder?->meal_type ?? 'breakfast') === $value)>{{ __($label) }}</option>
                         @endforeach
                     </select>
@@ -73,11 +73,11 @@
                     <tbody>
                         @forelse ($orders as $order)
                             <tr>
-                                <td>{{ $order->reference }}</td>
+                                <td>{{ $order->display_ref }}</td>
                                 <td>{{ $order->order_date->toDateString() }}</td>
                                 <td>{{ $order->meal_type }}</td>
                                 <td>{{ $order->quantity }}</td>
-                                <td>{{ __('BDT :amount', ['amount' => number_format($order->total)]) }}</td>
+                                <td>{{ __('BDT :amount', ['amount' => number_format($order->display_total)]) }}</td>
                                 <td><span class="bcs-status">{{ $order->status }}</span></td>
                                 <td class="bcs-row-actions">
                                     <a href="{{ route('cadre.meals', ['edit' => $order->id]) }}">{{ __('Edit') }}</a>
