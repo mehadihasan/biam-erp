@@ -47,6 +47,24 @@
     letter-spacing: 0.1px;
 }
 
+/* Top-level page links should align with main menu group rows. */
+.fi-sidebar-group[data-group-label=""] > .fi-sidebar-group-items > .fi-sidebar-item > .fi-sidebar-item-btn {
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    line-height: 1.25 !important;
+}
+
+.fi-sidebar-group[data-group-label=""] > .fi-sidebar-group-items > .fi-sidebar-item > .fi-sidebar-item-btn .fi-sidebar-item-icon {
+    width: 18px !important;
+    height: 18px !important;
+    flex: 0 0 18px !important;
+}
+
+.fi-sidebar-group[data-group-label=""] > .fi-sidebar-group-items > .fi-sidebar-item > .fi-sidebar-item-btn .fi-sidebar-item-label {
+    font-weight: 600 !important;
+    letter-spacing: 0.1px;
+}
+
 /* Parent icon (CSS-only). Uses per-group SVG masks below. */
 .fi-sidebar-group-btn::before {
     content: '';
@@ -96,7 +114,7 @@
     position: relative;
 }
 
-.fi-sidebar-group:not(.fi-collapsed)::after {
+.fi-sidebar-group:not([data-group-label=""]):not(.fi-collapsed)::after {
     display: block;
 }
 
@@ -107,7 +125,7 @@
 
 /* Submenu items should never paint under the vertical bar */
 .fi-sidebar-group-items .fi-sidebar-item > a {
-    margin-left: 22px !important;
+    margin-left: 0px !important;
     max-width: calc(100% - 22px) !important;
     box-sizing: border-box;
     background-clip: padding-box;
@@ -131,7 +149,7 @@
  * We indent submenu items to start after: parent icon (18) + gap (10) + label start.
  */
 .fi-sidebar-group-items .fi-sidebar-item-btn {
-    padding-left: 44px !important;
+    padding-left: 35px !important;
 }
 
 /* Reduce extra grouped border offset so it doesn't align under icons */
@@ -189,4 +207,3 @@
 .fi-topbar {
     border-bottom: 1px solid rgba(16, 24, 40, 0.08) !important;
 }
-
