@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Feedback;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,15 +16,27 @@ class FeedbackRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'options' => ['required', 'array', 'min:1'],
-            'options.*' => ['string', Rule::in([
-                'Room cleanliness',
-                'Meal quality',
-                'Staff behavior',
-                'Maintenance support',
-                'Billing concern',
-                'Booking experience',
-            ])],
+            'ratings' => ['required', 'array', 'size:'.count(Feedback::CATEGORIES)],
+            'ratings.*' => ['required', Rule::in(Feedback::RATINGS)],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            $ratings = $this->input('ratings', []);
+
+            if (! is_array($ratings)) {
+                return;
+            }
+
+            $submittedCategories = array_keys($ratings);
+            $missingCategories = array_diff(Feedback::CATEGORIES, $submittedCategories);
+            $extraCategories = array_diff($submittedCategories, Feedback::CATEGORIES);
+
+            if ($missingCategories !== [] || $extraCategories !== []) {
+                $validator->errors()->add('ratings', __('Please select one rating for every feedback category.'));
+            }
+        });
     }
 }

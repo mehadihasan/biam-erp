@@ -275,8 +275,10 @@ class BcsCadrePortalController extends Controller
 
         return view('bcs-cadre.feedback', [
             'activeMenu' => 'feedback',
-            'feedbackOptions' => $this->feedbackOptions(),
+            'feedbackCategories' => Feedback::CATEGORIES,
+            'feedbackRatings' => Feedback::RATINGS,
             'feedbackItems' => Feedback::query()
+                ->with('ratings')
                 ->where('cadre_reference', $this->currentCadreReference($request))
                 ->latest()
                 ->get(),
@@ -286,11 +288,18 @@ class BcsCadrePortalController extends Controller
 
     public function storeFeedback(FeedbackRequest $request): RedirectResponse
     {
-        Feedback::query()->create([
+        $cadreUser = $this->currentCadreUser($request);
+        abort_if(! $cadreUser, 403, 'Authenticated cadre user was not found.');
+
+        $feedback = Feedback::query()->create([
+            'guest_id' => $cadreUser->id,
             'cadre_reference' => $this->currentCadreReference($request),
-            'options' => array_values($request->validated('options')),
+            'submitter_type' => 'cadre',
+            'options' => [],
             'status' => 'submitted',
         ]);
+
+        $this->syncFeedbackRatings($feedback, $request->validated('ratings'));
 
         return redirect()->route('cadre.feedback');
     }
@@ -299,9 +308,7 @@ class BcsCadrePortalController extends Controller
     {
         $this->abortIfDifferentCadre($feedback->cadre_reference);
 
-        $feedback->update([
-            'options' => array_values($request->validated('options')),
-        ]);
+        $this->syncFeedbackRatings($feedback, $request->validated('ratings'));
 
         return redirect()->route('cadre.feedback');
     }
@@ -485,18 +492,6 @@ class BcsCadrePortalController extends Controller
         ];
     }
 
-    private function feedbackOptions(): array
-    {
-        return [
-            'Room cleanliness',
-            'Meal quality',
-            'Staff behavior',
-            'Maintenance support',
-            'Billing concern',
-            'Booking experience',
-        ];
-    }
-
     private function editableMealOrder(Request $request): ?MealOrder
     {
         $id = $request->integer('edit');
@@ -517,8 +512,19 @@ class BcsCadrePortalController extends Controller
         }
 
         return Feedback::query()
+            ->with('ratings')
             ->where('cadre_reference', $this->currentCadreReference($request))
             ->find($id);
+    }
+
+    private function syncFeedbackRatings(Feedback $feedback, array $ratings): void
+    {
+        foreach (Feedback::CATEGORIES as $category) {
+            $feedback->ratings()->updateOrCreate(
+                ['category' => $category],
+                ['rating' => $ratings[$category]],
+            );
+        }
     }
 
     private function uniqueMealReference(): string

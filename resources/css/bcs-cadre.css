@@ -830,6 +830,69 @@ select {
     gap: 22px;
 }
 
+.bcs-feedback-rating-list {
+    display: grid;
+    gap: 14px;
+}
+
+.bcs-feedback-rating {
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--bcs-border);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.bcs-feedback-rating legend {
+    padding: 0 6px;
+    color: var(--bcs-text);
+    font-weight: 800;
+}
+
+.bcs-feedback-rating__options {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.bcs-feedback-rating__options label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--bcs-border);
+    border-radius: 8px;
+    background: var(--bcs-input);
+    cursor: pointer;
+}
+
+.bcs-feedback-rating__options input {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.bcs-feedback-rating__options span {
+    margin: 0;
+    color: var(--bcs-text);
+    font-weight: 600;
+}
+
+.bcs-feedback-rating-summary {
+    display: grid;
+    gap: 6px;
+    min-width: 320px;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.bcs-feedback-rating-summary span {
+    color: var(--bcs-text);
+}
+
 .bcs-checkbox-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(140px, 1fr));
@@ -985,6 +1048,10 @@ select {
     }
 
     .bcs-search-combo {
+        grid-template-columns: 1fr;
+    }
+
+    .bcs-feedback-rating__options {
         grid-template-columns: 1fr;
     }
 

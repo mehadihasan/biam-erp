@@ -3,6 +3,10 @@
 @section('title', __('Feedback'))
 
 @section('content')
+    @php
+        $selectedRatings = old('ratings', $editingFeedback?->ratingMap() ?? []);
+    @endphp
+
     <div class="bcs-page">
         <header class="bcs-page__header bcs-page__header--icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>
@@ -19,19 +23,28 @@
                     @method('put')
                 @endif
 
-                <div class="bcs-checkbox-grid">
-                    @foreach ($feedbackOptions as $option)
-                        <label class="bcs-checkbox">
-                            <input
-                                type="checkbox"
-                                name="options[]"
-                                value="{{ $option }}"
-                                @checked(in_array($option, old('options', $editingFeedback?->options ?? []), true))
-                            >
-                            <span>{{ $option }}</span>
-                        </label>
+                <div class="bcs-feedback-rating-list">
+                    @foreach ($feedbackCategories as $category)
+                        <fieldset class="bcs-feedback-rating">
+                            <legend>{{ $category }}</legend>
+                            <div class="bcs-feedback-rating__options">
+                                @foreach ($feedbackRatings as $rating)
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="ratings[{{ $category }}]"
+                                            value="{{ $rating }}"
+                                            @checked(($selectedRatings[$category] ?? null) === $rating)
+                                            required
+                                        >
+                                        <span>{{ $rating }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
                     @endforeach
                 </div>
+                @error('ratings') <span class="bcs-error">{{ $message }}</span> @enderror
 
                 <div class="bcs-feedback-actions">
                     <button type="submit" class="bcs-action-btn bcs-action-btn--compact">
@@ -51,7 +64,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>{{ __('Selected Options') }}</th>
+                            <th>{{ __('Ratings') }}</th>
                             <th>{{ __('Status') }}</th>
                             <th>{{ __('Date') }}</th>
                             <th>{{ __('Actions') }}</th>
@@ -60,9 +73,15 @@
                     <tbody>
                         @forelse ($feedbackItems as $item)
                             <tr>
-                                <td>{{ implode(', ', $item->options ?? []) }}</td>
+                                <td>
+                                    <div class="bcs-feedback-rating-summary">
+                                        @foreach ($feedbackCategories as $category)
+                                            <span><strong>{{ $category }}:</strong> {{ $item->ratingMap()[$category] ?? '-' }}</span>
+                                        @endforeach
+                                    </div>
+                                </td>
                                 <td><span class="bcs-status">{{ $item->status }}</span></td>
-                                <td>{{ $item->created_at->toDateString() }}</td>
+                                <td>{{ $item->created_at->format('Y-m-d h:i A') }}</td>
                                 <td class="bcs-row-actions">
                                     <a href="{{ route('cadre.feedback', ['edit' => $item->id]) }}">{{ __('Edit') }}</a>
                                     <form method="post" action="{{ route('cadre.feedback.destroy', $item) }}">
