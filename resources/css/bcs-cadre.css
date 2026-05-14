@@ -179,20 +179,22 @@ select {
 
 .bcs-search-card {
     display: grid;
-    grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) minmax(300px, 1fr) 178px;
+    grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(260px, 1.25fr) minmax(132px, 150px);
     gap: 12px;
     padding: 18px;
     margin-bottom: 27px;
     align-items: center;
+    overflow: hidden;
 }
 
 .bcs-search-field {
+    min-width: 0;
     min-height: 70px;
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
     position: relative;
-    padding: 13px 18px;
+    padding: 13px 14px;
     border: 1px solid var(--bcs-border);
     border-radius: 10px;
     background: #fff;
@@ -255,8 +257,9 @@ select {
 .bcs-search-combo {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 14px;
+    gap: 10px;
     width: 100%;
+    min-width: 0;
 }
 
 .bcs-action-btn {
@@ -690,6 +693,12 @@ select {
     align-items: end;
 }
 
+.bcs-meal-form {
+    grid-template-columns: minmax(170px, 220px) minmax(460px, 1fr) minmax(96px, 130px);
+    column-gap: 18px;
+    row-gap: 16px;
+}
+
 .bcs-form-grid label,
 .bcs-booking-form label,
 .bcs-feedback-form label {
@@ -823,30 +832,37 @@ select {
 
 .bcs-checkbox-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
     gap: 14px;
+    width: 100%;
 }
 
 .bcs-checkbox {
     display: flex !important;
     align-items: center;
     gap: 10px;
-    min-height: 44px;
-    padding: 10px 13px;
+    width: 100%;
+    min-height: 54px;
+    padding: 14px 18px;
     border: 1px solid var(--bcs-border);
     border-radius: 8px;
     background: var(--bcs-input);
+    cursor: pointer;
 }
 
 .bcs-checkbox input {
-    width: 16px;
-    height: 16px;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
     margin: 0;
 }
 
 .bcs-checkbox span {
+    min-width: 0;
     margin: 0;
     color: var(--bcs-text);
+    font-weight: 600;
+    line-height: 1.25;
 }
 
 .bcs-feedback-actions {
@@ -894,9 +910,20 @@ select {
 }
 
 @media (max-width: 1200px) {
-    .bcs-search-card,
     .bcs-form-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bcs-search-card {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bcs-search-card .bcs-action-btn {
+        width: 100%;
+    }
+
+    .bcs-meal-form {
+        grid-template-columns: minmax(170px, 220px) minmax(360px, 1fr) minmax(96px, 130px);
     }
 
     .bcs-room-grid {
@@ -945,12 +972,19 @@ select {
         padding: 20px 12px 28px;
     }
 
-    .bcs-search-card,
     .bcs-form-grid,
     .bcs-booking-form,
     .bcs-room-grid,
     .bcs-checkbox-grid,
     .bcs-billing-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .bcs-search-card {
+        grid-template-columns: 1fr;
+    }
+
+    .bcs-search-combo {
         grid-template-columns: 1fr;
     }
 

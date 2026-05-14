@@ -5,6 +5,8 @@
 @section('content')
     @php
         $minimumOrderDate = now()->addDay()->toDateString();
+        $mealTypeOptions = ['breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'supper' => 'Supper'];
+        $selectedMealTypes = old('meal_types', $editingOrder ? [$editingOrder->meal_type] : []);
     @endphp
 
     <div class="bcs-page">
@@ -17,7 +19,7 @@
         </header>
 
         <section class="bcs-panel">
-            <form method="post" action="{{ $editingOrder ? route('cadre.meals.update', $editingOrder) : route('cadre.meals.store') }}" class="bcs-form-grid">
+            <form method="post" action="{{ $editingOrder ? route('cadre.meals.update', $editingOrder) : route('cadre.meals.store') }}" class="bcs-form-grid bcs-meal-form">
                 @csrf
                 @if ($editingOrder)
                     @method('put')
@@ -26,22 +28,22 @@
                     <span>{{ __('Date') }} <em>*</em></span>
                     <input type="date" name="order_date" value="{{ old('order_date', optional($editingOrder?->order_date)->toDateString() ?? $minimumOrderDate) }}" min="{{ $minimumOrderDate }}" required>
                 </label>
-                <label>
-                    <span>{{ __('Meal Type') }} <em>*</em></span>
-                    <select name="meal_type" required>
-                        @foreach (['breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'supper' => 'Supper'] as $value => $label)
-                            <option value="{{ $value }}" @selected(old('meal_type', $editingOrder?->meal_type ?? 'breakfast') === $value)>{{ __($label) }}</option>
-                        @endforeach
-                    </select>
-                </label>
                 <label class="bcs-form-grid__wide">
-                    <span>{{ __('Menu Item') }} <em>*</em></span>
-                    <select name="menu_item" required>
-                        <option value="">{{ __('Select menu...') }}</option>
-                        @foreach ($mealOptions as $item => $meta)
-                            <option value="{{ $item }}" @selected(old('menu_item', $editingOrder?->menu_item) === $item)>{{ $item }}</option>
+                    <span>{{ __('Meal Type') }} <em>*</em></span>
+                    <div class="bcs-checkbox-grid">
+                        @foreach ($mealTypeOptions as $value => $label)
+                            <label class="bcs-checkbox">
+                                <input
+                                    type="checkbox"
+                                    name="meal_types[]"
+                                    value="{{ $value }}"
+                                    @checked(in_array($value, $selectedMealTypes, true))
+                                >
+                                <span>{{ __($label) }}</span>
+                            </label>
                         @endforeach
-                    </select>
+                    </div>
+                    @error('meal_types') <span class="bcs-error">{{ $message }}</span> @enderror
                 </label>
                 <label>
                     <span>{{ __('Qty') }}</span>
@@ -67,10 +69,10 @@
                         <tr>
                             <th>{{ __('Ref') }}</th>
                             <th>{{ __('Date') }}</th>
-                            <th>{{ __('Meal') }}</th>
+                            <th>{{ __('Meal Types') }}</th>
                             <th>{{ __('Qty') }}</th>
-                            <th>{{ __('Total') }}</th>
                             <th>{{ __('Status') }}</th>
+                            <th>{{ __('Created') }}</th>
                             <th>{{ __('Actions') }}</th>
                         </tr>
                     </thead>
@@ -79,12 +81,11 @@
                             <tr>
                                 <td>{{ $order->display_ref }}</td>
                                 <td>{{ $order->order_date->toDateString() }}</td>
-                                <td>{{ $order->meal_type }}</td>
+                                <td>{{ $mealTypeOptions[$order->meal_type] ?? \Illuminate\Support\Str::headline($order->meal_type) }}</td>
                                 <td>{{ $order->quantity }}</td>
-                                <td>{{ __('BDT :amount', ['amount' => number_format($order->display_total)]) }}</td>
                                 <td><span class="bcs-status">{{ $order->status }}</span></td>
+                                <td>{{ $order->created_at?->format('h:i A') ?? '-' }}</td>
                                 <td class="bcs-row-actions">
-                                    <a href="{{ route('cadre.meals', ['edit' => $order->id]) }}">{{ __('Edit') }}</a>
                                     <form method="post" action="{{ route('cadre.meals.destroy', $order) }}">
                                         @csrf
                                         @method('delete')

@@ -174,7 +174,6 @@ class BcsCadrePortalController extends Controller
 
         return view('bcs-cadre.meal-order', [
             'activeMenu' => 'meal',
-            'mealOptions' => $this->mealOptions(),
             'orders' => MealOrder::query()
                 ->where('cadre_reference', $this->currentCadreReference($request))
                 ->latest('order_date')
@@ -187,25 +186,29 @@ class BcsCadrePortalController extends Controller
     public function storeMealOrder(MealOrderRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $menuItem = MenuItem::query()
-            ->where('name', $validated['menu_item'])
-            ->where('meal_type', $validated['meal_type'])
-            ->where('is_active', true)
-            ->first();
-        $unitPrice = $menuItem ? (float) $menuItem->price_bcs : ($this->mealOptions()[$validated['menu_item']]['price'] ?? 0);
-        $reference = $this->uniqueMealReference();
+        $cadreUser = $this->currentCadreUser($request);
+        abort_if(! $cadreUser, 403, 'Authenticated cadre user was not found.');
 
-        MealOrder::query()->create([
-            ...$validated,
-            'cadre_reference' => $this->currentCadreReference($request),
-            'ref' => $reference,
-            'reference' => $reference,
-            'menu_item_id' => $menuItem?->id,
-            'unit_price' => $unitPrice,
-            'total_price' => $unitPrice * (int) $validated['quantity'],
-            'total' => $unitPrice * (int) $validated['quantity'],
-            'status' => 'pending',
-        ]);
+        foreach (array_values(array_unique($validated['meal_types'])) as $mealType) {
+            $unitPrice = $this->mealTypeUnitPrice($mealType);
+            $reference = $this->uniqueMealReference();
+
+            MealOrder::query()->create([
+                'order_date' => $validated['order_date'],
+                'meal_type' => $mealType,
+                'menu_item' => $this->mealTypeLabel($mealType),
+                'quantity' => $validated['quantity'],
+                'cadre_reference' => $this->currentCadreReference($request),
+                'guest_id' => $cadreUser->id,
+                'ref' => $reference,
+                'reference' => $reference,
+                'menu_item_id' => null,
+                'unit_price' => $unitPrice,
+                'total_price' => $unitPrice * (int) $validated['quantity'],
+                'total' => $unitPrice * (int) $validated['quantity'],
+                'status' => 'pending',
+            ]);
+        }
 
         return redirect()->route('cadre.meals');
     }
@@ -215,20 +218,42 @@ class BcsCadrePortalController extends Controller
         $this->abortIfDifferentCadre($mealOrder->cadre_reference);
 
         $validated = $request->validated();
-        $menuItem = MenuItem::query()
-            ->where('name', $validated['menu_item'])
-            ->where('meal_type', $validated['meal_type'])
-            ->where('is_active', true)
-            ->first();
-        $unitPrice = $menuItem ? (float) $menuItem->price_bcs : ($this->mealOptions()[$validated['menu_item']]['price'] ?? 0);
+        $mealTypes = array_values(array_unique($validated['meal_types']));
+        $mealType = $mealTypes[0];
+        $unitPrice = $this->mealTypeUnitPrice($mealType);
 
         $mealOrder->update([
-            ...$validated,
-            'menu_item_id' => $menuItem?->id,
+            'order_date' => $validated['order_date'],
+            'meal_type' => $mealType,
+            'menu_item' => $this->mealTypeLabel($mealType),
+            'quantity' => $validated['quantity'],
+            'menu_item_id' => null,
             'unit_price' => $unitPrice,
             'total_price' => $unitPrice * (int) $validated['quantity'],
             'total' => $unitPrice * (int) $validated['quantity'],
         ]);
+
+        foreach (array_slice($mealTypes, 1) as $additionalMealType) {
+            $additionalUnitPrice = $this->mealTypeUnitPrice($additionalMealType);
+            $reference = $this->uniqueMealReference();
+            $cadreUser = $this->currentCadreUser($request);
+
+            MealOrder::query()->create([
+                'order_date' => $validated['order_date'],
+                'meal_type' => $additionalMealType,
+                'menu_item' => $this->mealTypeLabel($additionalMealType),
+                'quantity' => $validated['quantity'],
+                'cadre_reference' => $this->currentCadreReference($request),
+                'guest_id' => $mealOrder->guest_id ?: $cadreUser?->id,
+                'ref' => $reference,
+                'reference' => $reference,
+                'menu_item_id' => null,
+                'unit_price' => $additionalUnitPrice,
+                'total_price' => $additionalUnitPrice * (int) $validated['quantity'],
+                'total' => $additionalUnitPrice * (int) $validated['quantity'],
+                'status' => $mealOrder->status,
+            ]);
+        }
 
         return redirect()->route('cadre.meals');
     }
@@ -360,32 +385,34 @@ class BcsCadrePortalController extends Controller
             ->first();
     }
 
-    private function mealOptions(): array
+    private function mealTypeUnitPrice(string $mealType): float
     {
-        $items = MenuItem::query()
+        $price = MenuItem::query()
+            ->where('meal_type', $mealType)
             ->where('is_active', true)
-            ->orderBy('meal_type')
-            ->orderBy('name')
-            ->get();
+            ->orderBy('id')
+            ->value('price_bcs');
 
-        if ($items->isNotEmpty()) {
-            return $items
-                ->mapWithKeys(fn (MenuItem $item): array => [
-                    $item->name => [
-                        'meal' => $item->meal_type,
-                        'price' => (float) $item->price_bcs,
-                    ],
-                ])
-                ->all();
+        if ($price !== null) {
+            return (float) $price;
         }
 
-        return [
-            'Paratha set' => ['meal' => 'breakfast', 'price' => 50],
-            'Rice and chicken' => ['meal' => 'lunch', 'price' => 100],
-            'Vegetable khichuri' => ['meal' => 'lunch', 'price' => 80],
-            'Rice and fish' => ['meal' => 'supper', 'price' => 120],
-            'Light supper' => ['meal' => 'supper', 'price' => 70],
-        ];
+        return match ($mealType) {
+            'breakfast' => 50,
+            'lunch' => 100,
+            'supper' => 70,
+            default => 0,
+        };
+    }
+
+    private function mealTypeLabel(string $mealType): string
+    {
+        return match ($mealType) {
+            'breakfast' => 'Breakfast',
+            'lunch' => 'Lunch',
+            'supper' => 'Supper',
+            default => Str::headline($mealType),
+        };
     }
 
     private function availableRooms(Request $request)
