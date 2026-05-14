@@ -19,7 +19,7 @@
         </header>
 
         <section class="bcs-panel">
-            <form method="post" action="{{ $editingOrder ? route('cadre.meals.update', $editingOrder) : route('cadre.meals.store') }}" class="bcs-form-grid bcs-meal-form">
+            <form method="post" action="{{ $editingOrder ? route($portalRoutePrefix.'.meals.update', $editingOrder) : route($portalRoutePrefix.'.meals.store') }}" class="bcs-form-grid bcs-meal-form">
                 @csrf
                 @if ($editingOrder)
                     @method('put')
@@ -55,7 +55,7 @@
                         {{ $editingOrder ? __('Update Order') : __('Place Order') }}
                     </button>
                     @if ($editingOrder)
-                        <a href="{{ route('cadre.meals') }}" class="bcs-link-btn">{{ __('Cancel') }}</a>
+                        <a href="{{ route($portalRoutePrefix.'.meals') }}" class="bcs-link-btn">{{ __('Cancel') }}</a>
                     @endif
                 </div>
             </form>
@@ -86,7 +86,7 @@
                                 <td><span class="bcs-status">{{ $order->status }}</span></td>
                                 <td>{{ $order->created_at?->format('h:i A') ?? '-' }}</td>
                                 <td class="bcs-row-actions">
-                                    <form method="post" action="{{ route('cadre.meals.destroy', $order) }}">
+                                    <form method="post" action="{{ route($portalRoutePrefix.'.meals.destroy', $order) }}">
                                         @csrf
                                         @method('delete')
                                         <button type="submit">{{ __('Delete') }}</button>

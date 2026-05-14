@@ -30,6 +30,7 @@ class BcsCadrePortalController extends Controller
 
         return view('bcs-cadre.booking', [
             'activeMenu' => 'booking',
+            'portalRoutePrefix' => $this->portalRoutePrefix($request),
             'rooms' => $this->availableRooms($request),
             'roomTypes' => $this->roomTypeOptions(),
             'filters' => [
@@ -51,13 +52,14 @@ class BcsCadrePortalController extends Controller
             ->where('status', '!=', 'maintenance')
             ->findOrFail($request->integer('room'));
 
-        $cadreUser = $this->currentCadreUser($request);
-        abort_if(! $cadreUser, 403, 'Authenticated cadre user was not found.');
+        $portalUser = $this->currentPortalUser($request);
+        abort_if(! $portalUser, 403, 'Authenticated portal user was not found.');
 
         return view('bcs-cadre.booking-create', [
             'activeMenu' => 'booking',
+            'portalRoutePrefix' => $this->portalRoutePrefix($request),
             'room' => $room,
-            'cadreUser' => $cadreUser,
+            'cadreUser' => $portalUser,
             'checkInDate' => old('check_in_date', $this->queryString($request, 'check_in')),
             'checkOutDate' => old('check_out_date', $this->queryString($request, 'check_out')),
             'numberOfRooms' => (int) old('number_of_rooms', $request->integer('rooms') ?: 1),
@@ -77,6 +79,7 @@ class BcsCadrePortalController extends Controller
 
         return view('bcs-cadre.room-detail', [
             'activeMenu' => 'booking',
+            'portalRoutePrefix' => $this->portalRoutePrefix($request),
             'room' => $room,
             'checkInDate' => $this->queryString($request, 'check_in') ?: now()->toDateString(),
             'checkOutDate' => $this->queryString($request, 'check_out') ?: now()->addDay()->toDateString(),
@@ -93,8 +96,8 @@ class BcsCadrePortalController extends Controller
             return $redirect;
         }
 
-        $cadreUser = $this->currentCadreUser($request);
-        abort_if(! $cadreUser, 403, 'Authenticated cadre user was not found.');
+        $portalUser = $this->currentPortalUser($request);
+        abort_if(! $portalUser, 403, 'Authenticated portal user was not found.');
 
         $validated = $request->validate([
             'room_id' => [
@@ -124,7 +127,7 @@ class BcsCadrePortalController extends Controller
         );
 
         $booking = Booking::query()->create([
-            'user_id' => $cadreUser->id,
+            'user_id' => $portalUser->id,
             'room_id' => $room->id,
             'room_type' => $room->room_type,
             'number_of_rooms' => $validated['number_of_rooms'],
@@ -146,7 +149,7 @@ class BcsCadrePortalController extends Controller
 
         if ($request->input('return_to') === 'room_detail') {
             return redirect()
-                ->route('cadre.rooms.show', [
+                ->route($this->portalRouteName($request, 'rooms.show'), [
                     'room' => $room->id,
                     'check_in' => $validated['check_in_date'],
                     'check_out' => $validated['check_out_date'],
@@ -156,7 +159,7 @@ class BcsCadrePortalController extends Controller
         }
 
         return redirect()
-            ->route('cadre.bookings.new', [
+            ->route($this->portalRouteName($request, 'bookings.new'), [
                 'room' => $room->id,
                 'check_in' => $validated['check_in_date'],
                 'check_out' => $validated['check_out_date'],
@@ -174,8 +177,13 @@ class BcsCadrePortalController extends Controller
 
         return view('bcs-cadre.meal-order', [
             'activeMenu' => 'meal',
+            'portalRoutePrefix' => $this->portalRoutePrefix($request),
             'orders' => MealOrder::query()
-                ->where('cadre_reference', $this->currentCadreReference($request))
+                ->when(
+                    $this->portalIsGuest($request),
+                    fn ($query) => $query->where('guest_id', $this->currentPortalUser($request)?->id),
+                    fn ($query) => $query->where('cadre_reference', $this->currentCadreReference($request)),
+                )
                 ->latest('order_date')
                 ->latest()
                 ->get(),
@@ -186,8 +194,8 @@ class BcsCadrePortalController extends Controller
     public function storeMealOrder(MealOrderRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $cadreUser = $this->currentCadreUser($request);
-        abort_if(! $cadreUser, 403, 'Authenticated cadre user was not found.');
+        $portalUser = $this->currentPortalUser($request);
+        abort_if(! $portalUser, 403, 'Authenticated portal user was not found.');
 
         foreach (array_values(array_unique($validated['meal_types'])) as $mealType) {
             $unitPrice = $this->mealTypeUnitPrice($mealType);
@@ -199,7 +207,7 @@ class BcsCadrePortalController extends Controller
                 'menu_item' => $this->mealTypeLabel($mealType),
                 'quantity' => $validated['quantity'],
                 'cadre_reference' => $this->currentCadreReference($request),
-                'guest_id' => $cadreUser->id,
+                'guest_id' => $portalUser->id,
                 'ref' => $reference,
                 'reference' => $reference,
                 'menu_item_id' => null,
@@ -210,12 +218,12 @@ class BcsCadrePortalController extends Controller
             ]);
         }
 
-        return redirect()->route('cadre.meals');
+        return redirect()->route($this->portalRouteName($request, 'meals'));
     }
 
     public function updateMealOrder(MealOrderRequest $request, MealOrder $mealOrder): RedirectResponse
     {
-        $this->abortIfDifferentCadre($mealOrder->cadre_reference);
+        $this->abortIfUnauthorizedRecord($request, $mealOrder);
 
         $validated = $request->validated();
         $mealTypes = array_values(array_unique($validated['meal_types']));
@@ -236,7 +244,7 @@ class BcsCadrePortalController extends Controller
         foreach (array_slice($mealTypes, 1) as $additionalMealType) {
             $additionalUnitPrice = $this->mealTypeUnitPrice($additionalMealType);
             $reference = $this->uniqueMealReference();
-            $cadreUser = $this->currentCadreUser($request);
+            $portalUser = $this->currentPortalUser($request);
 
             MealOrder::query()->create([
                 'order_date' => $validated['order_date'],
@@ -244,7 +252,7 @@ class BcsCadrePortalController extends Controller
                 'menu_item' => $this->mealTypeLabel($additionalMealType),
                 'quantity' => $validated['quantity'],
                 'cadre_reference' => $this->currentCadreReference($request),
-                'guest_id' => $mealOrder->guest_id ?: $cadreUser?->id,
+                'guest_id' => $mealOrder->guest_id ?: $portalUser?->id,
                 'ref' => $reference,
                 'reference' => $reference,
                 'menu_item_id' => null,
@@ -255,16 +263,16 @@ class BcsCadrePortalController extends Controller
             ]);
         }
 
-        return redirect()->route('cadre.meals');
+        return redirect()->route($this->portalRouteName($request, 'meals'));
     }
 
-    public function destroyMealOrder(MealOrder $mealOrder): RedirectResponse
+    public function destroyMealOrder(Request $request, MealOrder $mealOrder): RedirectResponse
     {
-        $this->abortIfDifferentCadre($mealOrder->cadre_reference);
+        $this->abortIfUnauthorizedRecord($request, $mealOrder);
 
         $mealOrder->delete();
 
-        return redirect()->route('cadre.meals');
+        return redirect()->route($this->portalRouteName($request, 'meals'));
     }
 
     public function feedback(Request $request): RedirectResponse|View
@@ -275,11 +283,16 @@ class BcsCadrePortalController extends Controller
 
         return view('bcs-cadre.feedback', [
             'activeMenu' => 'feedback',
+            'portalRoutePrefix' => $this->portalRoutePrefix($request),
             'feedbackCategories' => Feedback::CATEGORIES,
             'feedbackRatings' => Feedback::RATINGS,
             'feedbackItems' => Feedback::query()
                 ->with('ratings')
-                ->where('cadre_reference', $this->currentCadreReference($request))
+                ->when(
+                    $this->portalIsGuest($request),
+                    fn ($query) => $query->where('guest_id', $this->currentPortalUser($request)?->id),
+                    fn ($query) => $query->where('cadre_reference', $this->currentCadreReference($request)),
+                )
                 ->latest()
                 ->get(),
             'editingFeedback' => $this->editableFeedback($request),
@@ -288,38 +301,38 @@ class BcsCadrePortalController extends Controller
 
     public function storeFeedback(FeedbackRequest $request): RedirectResponse
     {
-        $cadreUser = $this->currentCadreUser($request);
-        abort_if(! $cadreUser, 403, 'Authenticated cadre user was not found.');
+        $portalUser = $this->currentPortalUser($request);
+        abort_if(! $portalUser, 403, 'Authenticated portal user was not found.');
 
         $feedback = Feedback::query()->create([
-            'guest_id' => $cadreUser->id,
+            'guest_id' => $portalUser->id,
             'cadre_reference' => $this->currentCadreReference($request),
-            'submitter_type' => 'cadre',
+            'submitter_type' => $request->session()->get('guest_verified') === true && $request->session()->get('cadre_auth') !== true ? 'guest' : 'cadre',
             'options' => [],
             'status' => 'submitted',
         ]);
 
         $this->syncFeedbackRatings($feedback, $request->validated('ratings'));
 
-        return redirect()->route('cadre.feedback');
+        return redirect()->route($this->portalRouteName($request, 'feedback'));
     }
 
     public function updateFeedback(FeedbackRequest $request, Feedback $feedback): RedirectResponse
     {
-        $this->abortIfDifferentCadre($feedback->cadre_reference);
+        $this->abortIfUnauthorizedRecord($request, $feedback);
 
         $this->syncFeedbackRatings($feedback, $request->validated('ratings'));
 
-        return redirect()->route('cadre.feedback');
+        return redirect()->route($this->portalRouteName($request, 'feedback'));
     }
 
-    public function destroyFeedback(Feedback $feedback): RedirectResponse
+    public function destroyFeedback(Request $request, Feedback $feedback): RedirectResponse
     {
-        $this->abortIfDifferentCadre($feedback->cadre_reference);
+        $this->abortIfUnauthorizedRecord($request, $feedback);
 
         $feedback->delete();
 
-        return redirect()->route('cadre.feedback');
+        return redirect()->route($this->portalRouteName($request, 'feedback'));
     }
 
     public function billing(Request $request): RedirectResponse|View
@@ -328,20 +341,22 @@ class BcsCadrePortalController extends Controller
             return $redirect;
         }
 
-        $charges = Room::query()
-            ->orderBy('floor')
-            ->orderBy('room_number')
-            ->get()
-            ->map(function (Room $room, int $index): array {
-                $days = ($index % 3) + 1;
+        $portalUser = $this->currentPortalUser($request);
+        abort_if(! $portalUser, 403, 'Authenticated portal user was not found.');
 
+        $charges = Booking::query()
+            ->with('room')
+            ->where('user_id', $portalUser->id)
+            ->latest('check_in_date')
+            ->get()
+            ->map(function (Booking $booking): array {
                 return [
-                    'reference' => 'BK-'.str_pad((string) (83185 - ($index * 1413)), 5, '0', STR_PAD_LEFT),
-                    'check_in' => now()->subDays($index + 2)->toDateString(),
-                    'check_out' => now()->subDays($index + 2)->addDays($days)->toDateString(),
-                    'days' => $days,
-                    'total' => (int) $room->base_rate * $days,
-                    'status' => $index % 4 === 0 ? 'confirmed' : 'pending',
+                    'reference' => 'BKG-'.str_pad((string) $booking->id, 4, '0', STR_PAD_LEFT),
+                    'check_in' => $booking->check_in_date?->toDateString() ?: '-',
+                    'check_out' => $booking->check_out_date?->toDateString() ?: '-',
+                    'days' => (int) $booking->duration_nights,
+                    'total' => (float) $booking->total_rent,
+                    'status' => $booking->status,
                 ];
             });
 
@@ -356,16 +371,39 @@ class BcsCadrePortalController extends Controller
 
     private function guard(Request $request): ?RedirectResponse
     {
-        if ($request->session()->get('cadre_auth') !== true) {
+        if (! $this->portalAuthenticated($request)) {
             return redirect()->route('home');
         }
 
         return null;
     }
 
+    private function portalAuthenticated(Request $request): bool
+    {
+        return $request->routeIs('guest.*')
+            ? $request->session()->get('guest_verified') === true
+            : $request->session()->get('cadre_auth') === true;
+    }
+
+    private function portalIsGuest(Request $request): bool
+    {
+        return $request->routeIs('guest.*');
+    }
+
+    private function portalRoutePrefix(Request $request): string
+    {
+        return $this->portalIsGuest($request) ? 'guest' : 'cadre';
+    }
+
+    private function portalRouteName(Request $request, string $name): string
+    {
+        return $this->portalRoutePrefix($request).'.'.$name;
+    }
+
     private function currentCadreReference(Request $request): string
     {
-        $reference = $request->session()->get('cadre_reference');
+        $reference = $request->session()->get('cadre_reference')
+            ?: $request->session()->get('guest_cadre_reference');
 
         return is_string($reference) && $reference !== ''
             ? $reference
@@ -387,9 +425,21 @@ class BcsCadrePortalController extends Controller
         return User::query()
             ->where('email', 'test@example.com')
             ->orWhereNotNull('cadre_number')
-            ->orWhere('role', 'guest')
             ->oldest()
             ->first();
+    }
+
+    private function currentPortalUser(Request $request): ?User
+    {
+        if ($this->portalIsGuest($request)) {
+            $guestUserId = $request->session()->get('guest_user_id');
+
+            return is_numeric($guestUserId)
+                ? User::query()->where('role', 'guest')->find((int) $guestUserId)
+                : null;
+        }
+
+        return $this->currentCadreUser($request);
     }
 
     private function mealTypeUnitPrice(string $mealType): float
@@ -500,7 +550,11 @@ class BcsCadrePortalController extends Controller
         }
 
         return MealOrder::query()
-            ->where('cadre_reference', $this->currentCadreReference($request))
+            ->when(
+                $this->portalIsGuest($request),
+                fn ($query) => $query->where('guest_id', $this->currentPortalUser($request)?->id),
+                fn ($query) => $query->where('cadre_reference', $this->currentCadreReference($request)),
+            )
             ->find($id);
     }
 
@@ -513,7 +567,11 @@ class BcsCadrePortalController extends Controller
 
         return Feedback::query()
             ->with('ratings')
-            ->where('cadre_reference', $this->currentCadreReference($request))
+            ->when(
+                $this->portalIsGuest($request),
+                fn ($query) => $query->where('guest_id', $this->currentPortalUser($request)?->id),
+                fn ($query) => $query->where('cadre_reference', $this->currentCadreReference($request)),
+            )
             ->find($id);
     }
 
@@ -536,10 +594,14 @@ class BcsCadrePortalController extends Controller
         return $reference;
     }
 
-    private function abortIfDifferentCadre(string $cadreReference): void
+    private function abortIfUnauthorizedRecord(Request $request, MealOrder|Feedback $record): void
     {
-        $currentReference = session('cadre_reference', BcsCadreAuthController::DEMO_CADRE_REFERENCE);
+        if ($this->portalIsGuest($request)) {
+            abort_if((int) $record->guest_id !== (int) $this->currentPortalUser($request)?->id, 404);
 
-        abort_if($cadreReference !== $currentReference, 404);
+            return;
+        }
+
+        abort_if($record->cadre_reference !== $this->currentCadreReference($request), 404);
     }
 }

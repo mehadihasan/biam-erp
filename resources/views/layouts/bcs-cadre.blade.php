@@ -11,12 +11,20 @@
     <x-shared-user-menu-styles />
 </head>
 <body class="bcs-body">
+    @php
+        $isGuestPortal = session('guest_verified') === true && session('cadre_auth') !== true;
+        $portalTitle = $isGuestPortal ? __('Guest') : __('BCS Cadre');
+        $portalUserName = $isGuestPortal
+            ? session('guest_name', __('Guest'))
+            : (session('cadre_name') ?: (session('cadre_reference') ? __('Cadre :reference', ['reference' => session('cadre_reference')]) : __('BCS Cadre')));
+        $portalLogoutUrl = $isGuestPortal ? route('guest.logout') : route('cadre.logout');
+    @endphp
     <header class="bcs-topbar">
-        <div class="bcs-topbar__brand">{{ __('BCS Cadre') }}</div>
+        <div class="bcs-topbar__brand">{{ $portalTitle }}</div>
         <div class="bcs-topbar__actions">
             <x-shared-user-menu
-                :name="session('cadre_name') ?: (session('cadre_reference') ? __('Cadre :reference', ['reference' => session('cadre_reference')]) : __('BCS Cadre'))"
-                :logout-url="route('cadre.logout')"
+                :name="$portalUserName"
+                :logout-url="$portalLogoutUrl"
             />
         </div>
     </header>

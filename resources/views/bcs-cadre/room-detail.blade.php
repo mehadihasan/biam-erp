@@ -41,7 +41,7 @@
     @endphp
 
     <div class="bcs-room-detail-page">
-        <a href="{{ route('cadre.booking') }}" class="bcs-room-detail-back">
+        <a href="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-room-detail-back">
             &larr; {{ __('Back to rooms') }}
         </a>
 
@@ -73,7 +73,7 @@
 
                 <form
                     method="post"
-                    action="{{ route('cadre.bookings.store') }}"
+                    action="{{ route($portalRoutePrefix.'.bookings.store') }}"
                     class="bcs-room-booking"
                     data-room-price="{{ $baseRate }}"
                 >
@@ -144,8 +144,8 @@
                 <p>{{ __('Your booking request has been submitted successfully.') }}</p>
                 <p class="bcs-success-modal__reference">{{ __('Reference:') }} <strong>{{ $successReference }}</strong></p>
                 <div class="bcs-success-modal__actions">
-                    <a href="{{ route('cadre.booking') }}" class="bcs-modal-btn bcs-modal-btn--secondary">{{ __('Book another') }}</a>
-                    <a href="{{ route('cadre.booking') }}" class="bcs-modal-btn bcs-modal-btn--primary">{{ __('Done') }}</a>
+                    <a href="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-modal-btn bcs-modal-btn--secondary">{{ __('Book another') }}</a>
+                    <a href="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-modal-btn bcs-modal-btn--primary">{{ __('Done') }}</a>
                 </div>
             </div>
         </div>

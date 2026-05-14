@@ -17,7 +17,7 @@
         </header>
 
         <section class="bcs-panel">
-            <form method="post" action="{{ $editingFeedback ? route('cadre.feedback.update', $editingFeedback) : route('cadre.feedback.store') }}" class="bcs-feedback-form">
+            <form method="post" action="{{ $editingFeedback ? route($portalRoutePrefix.'.feedback.update', $editingFeedback) : route($portalRoutePrefix.'.feedback.store') }}" class="bcs-feedback-form">
                 @csrf
                 @if ($editingFeedback)
                     @method('put')
@@ -52,7 +52,7 @@
                         {{ $editingFeedback ? __('Update Feedback') : __('Submit Feedback') }}
                     </button>
                     @if ($editingFeedback)
-                        <a href="{{ route('cadre.feedback') }}" class="bcs-link-btn">{{ __('Cancel') }}</a>
+                        <a href="{{ route($portalRoutePrefix.'.feedback') }}" class="bcs-link-btn">{{ __('Cancel') }}</a>
                     @endif
                 </div>
             </form>
@@ -83,8 +83,8 @@
                                 <td><span class="bcs-status">{{ $item->status }}</span></td>
                                 <td>{{ $item->created_at->format('Y-m-d h:i A') }}</td>
                                 <td class="bcs-row-actions">
-                                    <a href="{{ route('cadre.feedback', ['edit' => $item->id]) }}">{{ __('Edit') }}</a>
-                                    <form method="post" action="{{ route('cadre.feedback.destroy', $item) }}">
+                                    <a href="{{ route($portalRoutePrefix.'.feedback', ['edit' => $item->id]) }}">{{ __('Edit') }}</a>
+                                    <form method="post" action="{{ route($portalRoutePrefix.'.feedback.destroy', $item) }}">
                                         @csrf
                                         @method('delete')
                                         <button type="submit">{{ __('Delete') }}</button>

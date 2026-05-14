@@ -36,7 +36,7 @@
     @endphp
 
     <div class="bcs-page">
-        <a href="{{ route('cadre.booking') }}" class="bcs-room-detail-back">
+        <a href="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-room-detail-back">
             &larr; {{ __('Back to rooms') }}
         </a>
 
@@ -46,7 +46,7 @@
         </header>
 
         <section class="bcs-panel">
-            <form method="post" action="{{ route('cadre.bookings.store') }}" class="bcs-booking-form">
+            <form method="post" action="{{ route($portalRoutePrefix.'.bookings.store') }}" class="bcs-booking-form">
                 @csrf
                 <input type="hidden" name="room_id" value="{{ $room->id }}">
 
@@ -119,7 +119,7 @@
 
                 <div class="bcs-form-grid__actions">
                     <button type="submit" class="bcs-action-btn">{{ __('Submit Booking') }}</button>
-                    <a href="{{ route('cadre.booking') }}" class="bcs-link-btn">{{ __('Cancel') }}</a>
+                    <a href="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-link-btn">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </section>
@@ -137,8 +137,8 @@
                 <p>{{ __('Your booking request has been submitted successfully.') }}</p>
                 <p class="bcs-success-modal__reference">{{ __('Reference:') }} <strong>{{ $successReference }}</strong></p>
                 <div class="bcs-success-modal__actions">
-                    <a href="{{ route('cadre.booking') }}" class="bcs-modal-btn bcs-modal-btn--secondary">{{ __('Book another') }}</a>
-                    <a href="{{ route('cadre.booking') }}" class="bcs-modal-btn bcs-modal-btn--primary">{{ __('Done') }}</a>
+                    <a href="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-modal-btn bcs-modal-btn--secondary">{{ __('Book another') }}</a>
+                    <a href="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-modal-btn bcs-modal-btn--primary">{{ __('Done') }}</a>
                 </div>
             </div>
         </div>

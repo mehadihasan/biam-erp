@@ -9,7 +9,7 @@
             <p>{{ __('Browse available rooms and submit your booking.') }}</p>
         </header>
 
-        <form method="get" action="{{ route('cadre.booking') }}" class="bcs-search-card" aria-label="{{ __('Booking search') }}">
+        <form method="get" action="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-search-card" aria-label="{{ __('Booking search') }}">
             <label class="bcs-search-field">
                 <span class="bcs-search-field__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M8 14h4M8 18h8"></path></svg>
@@ -81,7 +81,7 @@
                         <p class="bcs-room-card__price">{{ __('BDT :amount / night', ['amount' => number_format((float) $room->base_rate, 0)]) }}</p>
                         <div class="bcs-room-card__actions">
                             <a
-                                href="{{ route('cadre.rooms.show', [
+                                href="{{ route($portalRoutePrefix.'.rooms.show', [
                                     'room' => $room->id,
                                     'check_in' => $filters['check_in'],
                                     'check_out' => $filters['check_out'],
@@ -93,7 +93,7 @@
                                 {{ __('Room details') }}
                             </a>
                             <a
-                                href="{{ route('cadre.bookings.new', [
+                                href="{{ route($portalRoutePrefix.'.bookings.new', [
                                     'room' => $room->id,
                                     'check_in' => $filters['check_in'],
                                     'check_out' => $filters['check_out'],

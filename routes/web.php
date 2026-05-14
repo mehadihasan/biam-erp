@@ -138,6 +138,23 @@ Route::post('/guest/otp', [GuestBookingController::class, 'verifyOtp'])->name('g
 Route::get('/guest/otp/cancel', [GuestBookingController::class, 'cancelOtp'])->name('guest.otp.cancel');
 Route::post('/guest/logout', [GuestBookingController::class, 'logout'])->name('guest.logout');
 
+Route::prefix('guest')->name('guest.')->middleware('guest.auth')->group(function () {
+    Route::get('/dashboard', [GuestBookingController::class, 'dashboard'])->name('dashboard');
+    Route::get('/booking', [BcsCadrePortalController::class, 'booking'])->name('booking');
+    Route::get('/rooms/{room}', [BcsCadrePortalController::class, 'room'])->name('rooms.show');
+    Route::get('/bookings/new', [BcsCadrePortalController::class, 'newBooking'])->name('bookings.new');
+    Route::post('/bookings', [BcsCadrePortalController::class, 'storeBooking'])->name('bookings.store');
+    Route::get('/meals', [BcsCadrePortalController::class, 'mealOrder'])->name('meals');
+    Route::post('/meals', [BcsCadrePortalController::class, 'storeMealOrder'])->name('meals.store');
+    Route::put('/meals/{mealOrder}', [BcsCadrePortalController::class, 'updateMealOrder'])->name('meals.update');
+    Route::delete('/meals/{mealOrder}', [BcsCadrePortalController::class, 'destroyMealOrder'])->name('meals.destroy');
+    Route::get('/feedback', [BcsCadrePortalController::class, 'feedback'])->name('feedback');
+    Route::post('/feedback', [BcsCadrePortalController::class, 'storeFeedback'])->name('feedback.store');
+    Route::put('/feedback/{feedback}', [BcsCadrePortalController::class, 'updateFeedback'])->name('feedback.update');
+    Route::delete('/feedback/{feedback}', [BcsCadrePortalController::class, 'destroyFeedback'])->name('feedback.destroy');
+    Route::get('/billing', [BcsCadrePortalController::class, 'billing'])->name('billing');
+});
+
 Route::prefix('cadre')->name('cadre.')->group(function () {
     Route::get('/login', [BcsCadreAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [BcsCadreAuthController::class, 'submitCadre'])->name('login.store');

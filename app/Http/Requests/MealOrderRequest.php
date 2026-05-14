@@ -9,7 +9,8 @@ class MealOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->session()->get('cadre_auth') === true;
+        return $this->session()->get('cadre_auth') === true
+            || $this->session()->get('guest_verified') === true;
     }
 
     public function rules(): array
