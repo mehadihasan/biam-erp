@@ -9,12 +9,14 @@ use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class NewBooking extends BaseHostelPage
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-plus';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-plus';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Booking & Reservation';
+    protected static string|\UnitEnum|null $navigationGroup = 'Booking & Reservation';
 
     protected static ?string $title = 'New Booking';
 
@@ -44,10 +46,29 @@ class NewBooking extends BaseHostelPage
 
     public ?string $notes = null;
 
+    public bool $cadreFlow = false;
+
+    public ?int $cadreUserId = null;
+
+    public bool $showSuccessModal = false;
+
+    public ?string $successReference = null;
+
     public function mount(): void
     {
+        $this->cadreFlow = request()->boolean('cadre') && request()->session()->get('cadre_auth') === true;
+        $cadreReference = request()->session()->get('cadre_reference');
+        $cadreUser = $this->cadreFlow && is_string($cadreReference)
+            ? User::query()->where('cadre_number', $cadreReference)->first()
+            : null;
+
+        if ($this->cadreFlow && ! $cadreUser) {
+            throw new HttpException(403, 'Authenticated cadre user was not found.');
+        }
+
         $this->users = User::query()
             ->with('designation')
+            ->when($this->cadreFlow, fn ($query) => $query->whereKey($cadreUser?->id))
             ->orderBy('name')
             ->get();
 
@@ -57,9 +78,13 @@ class NewBooking extends BaseHostelPage
             ->get();
 
         $this->selectedRoomId = request()->integer('room_id') ?: null;
+        $this->selectedGuestId = $this->cadreFlow ? $cadreUser?->id : null;
+        $this->cadreUserId = $cadreUser?->id;
         $this->roomType = Room::query()->whereKey($this->selectedRoomId)->value('room_type') ?: 'ac';
-        $this->checkInDate = request()->query('check_in');
-        $this->checkOutDate = request()->query('check_out');
+        $checkIn = request()->query('check_in');
+        $checkOut = request()->query('check_out');
+        $this->checkInDate = is_string($checkIn) ? $checkIn : null;
+        $this->checkOutDate = is_string($checkOut) ? $checkOut : null;
     }
 
     public function roomTypeLabel(?string $type): string
@@ -106,8 +131,14 @@ class NewBooking extends BaseHostelPage
 
     public function save(): void
     {
+        $guestRules = ['required', 'exists:users,id'];
+
+        if ($this->cadreFlow) {
+            $guestRules[] = Rule::in([(string) $this->cadreUserId]);
+        }
+
         $validated = $this->validate([
-            'selectedGuestId' => ['required', 'exists:users,id'],
+            'selectedGuestId' => $guestRules,
             'selectedRoomId' => ['required', 'exists:rooms,id'],
             'roomType' => ['required', 'in:vip,ac,non_ac'],
             'checkInDate' => ['required', 'date'],
@@ -115,6 +146,10 @@ class NewBooking extends BaseHostelPage
             'numberOfRooms' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        if ($this->cadreFlow && (int) $validated['selectedGuestId'] !== $this->cadreUserId) {
+            throw new HttpException(403, 'Cadre booking guest mismatch.');
+        }
 
         $room = Room::query()->findOrFail($validated['selectedRoomId']);
         $calculation = $this->calculateRent(
@@ -124,7 +159,7 @@ class NewBooking extends BaseHostelPage
             (int) $validated['numberOfRooms'],
         );
 
-        Booking::query()->create([
+        $booking = Booking::query()->create([
             'user_id' => $validated['selectedGuestId'],
             'room_id' => $room->id,
             'room_type' => $validated['roomType'],
@@ -141,12 +176,40 @@ class NewBooking extends BaseHostelPage
             'status' => 'pending',
         ]);
 
+        if ($this->cadreFlow) {
+            $this->successReference = 'BKG-'.str_pad((string) $booking->id, 4, '0', STR_PAD_LEFT);
+            $this->showSuccessModal = true;
+
+            return;
+        }
+
         Notification::make()
             ->title('Booking created successfully')
             ->success()
             ->send();
 
         $this->redirect(AllBookings::getUrl(panel: 'admin'));
+    }
+
+    public function bookAnother(): void
+    {
+        $this->showSuccessModal = false;
+        $this->successReference = null;
+        $this->selectedRoomId = null;
+        $this->checkInDate = null;
+        $this->checkOutDate = null;
+        $this->numberOfRooms = 1;
+        $this->notes = null;
+        $this->roomType = 'ac';
+
+        if ($this->cadreFlow) {
+            $this->selectedGuestId = $this->cadreUserId;
+        }
+    }
+
+    public function done(): void
+    {
+        $this->redirect($this->cadreFlow ? route('cadre.booking') : AllBookings::getUrl(panel: 'admin'));
     }
 
     private function calculateRent(Room $room, string $checkInDate, string $checkOutDate, int $numberOfRooms): array

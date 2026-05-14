@@ -30,6 +30,7 @@ class GuestBookingController extends Controller
         }
 
         $request->session()->put('guest_pending_otp', true);
+        $request->session()->put('guest_name', (string) $request->input('guest_full_name', __('Guest')));
 
         return redirect()->route('home', ['view' => 'guest']);
     }
@@ -62,8 +63,17 @@ class GuestBookingController extends Controller
 
     public function cancelOtp(Request $request): RedirectResponse
     {
-        $request->session()->forget('guest_pending_otp');
+        $request->session()->forget(['guest_pending_otp', 'guest_name']);
 
         return redirect()->route('home', ['view' => 'guest']);
+    }
+
+    public function logout(Request $request): RedirectResponse
+    {
+        $request->session()->forget(['guest_pending_otp', 'guest_verified', 'guest_name']);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home');
     }
 }

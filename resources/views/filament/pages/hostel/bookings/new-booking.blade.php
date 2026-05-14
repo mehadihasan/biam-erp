@@ -99,6 +99,74 @@
             text-decoration: none;
         }
 
+        .booking-success-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(15, 23, 42, 0.58);
+        }
+
+        .booking-success-panel {
+            width: min(460px, 100%);
+            border: 1px solid #d6dde6;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 42px 38px 38px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.24);
+        }
+
+        .booking-success-icon {
+            display: inline-flex;
+            width: 64px;
+            height: 64px;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid #2a7d3d;
+            border-radius: 999px;
+            color: #2a7d3d;
+        }
+
+        .booking-success-icon svg {
+            width: 34px;
+            height: 34px;
+        }
+
+        .booking-success-title {
+            margin: 18px 0 10px;
+            color: #1f2937;
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .booking-success-message {
+            margin: 0 auto;
+            max-width: 330px;
+            color: #64748b;
+            font-size: 18px;
+            line-height: 1.35;
+        }
+
+        .booking-success-reference {
+            margin: 14px 0 28px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .booking-success-reference strong {
+            color: #1f2937;
+        }
+
+        .booking-success-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
         @media (max-width: 767px) {
             .booking-form-card {
                 padding: 24px 18px;
@@ -117,6 +185,14 @@
             .booking-cancel {
                 width: 100%;
             }
+
+            .booking-success-panel {
+                padding: 34px 24px 28px;
+            }
+
+            .booking-success-actions {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 
@@ -131,7 +207,7 @@
                 <div class="space-y-5">
                     <label class="booking-field">
                         <span>Guest <span class="booking-required">*</span></span>
-                        <select wire:model.live="selectedGuestId" name="guest_id" class="booking-control">
+                        <select wire:model.live="selectedGuestId" name="guest_id" class="booking-control" @disabled($cadreFlow)>
                             <option value="">Select guest...</option>
                             @foreach ($users as $user)
                                 <option value="{{ $user->id }}">
@@ -220,9 +296,28 @@
             @endif
 
             <div class="booking-actions">
-                <button class="booking-primary">Create Booking</button>
-                <a href="{{ \App\Filament\Pages\Hostel\Bookings\AllBookings::getUrl(panel: 'admin') }}" class="booking-cancel">Cancel</a>
+                <button type="submit" class="booking-primary">Create Booking</button>
+                <a href="{{ $cadreFlow ? route('cadre.booking') : \App\Filament\Pages\Hostel\Bookings\AllBookings::getUrl(panel: 'admin') }}" class="booking-cancel">Cancel</a>
             </div>
         </form>
+
+        @if ($showSuccessModal)
+            <div class="booking-success-modal" role="dialog" aria-modal="true" aria-labelledby="booking-success-title">
+                <div class="booking-success-panel">
+                    <div class="booking-success-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <path d="M20 6 9 17l-5-5"></path>
+                        </svg>
+                    </div>
+                    <h2 class="booking-success-title" id="booking-success-title">Thank you!</h2>
+                    <p class="booking-success-message">Your booking request has been submitted successfully.</p>
+                    <p class="booking-success-reference">Reference: <strong>{{ $successReference }}</strong></p>
+                    <div class="booking-success-actions">
+                        <button type="button" wire:click="bookAnother" class="booking-cancel">Book another</button>
+                        <button type="button" wire:click="done" class="booking-primary">Done</button>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 </x-filament-panels::page>

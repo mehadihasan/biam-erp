@@ -6,14 +6,14 @@ use App\Filament\Pages\Hostel\Rooms\RoomDetail;
 use App\Filament\Pages\HostelDashboard;
 use App\Filament\Pages\InventoryDashboard;
 use App\Filament\Pages\ModuleSelector;
-use Filament\Navigation\NavigationGroup;
-use Filament\Support\Assets\Js;
-use Filament\Http\Middleware\Authenticate;
+use App\Http\Middleware\AuthenticateFilamentOrCadre;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\Widgets\AccountWidget;
@@ -80,7 +80,7 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                AuthenticateFilamentOrCadre::class,
             ]);
     }
 }

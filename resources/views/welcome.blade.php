@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet">
     @vite(['resources/css/welcome.css', 'resources/js/welcome.js'])
+    @if (session('guest_verified'))
+        <x-shared-user-menu-styles />
+    @endif
 </head>
 <body>
     @php
@@ -33,7 +36,12 @@
         <main class="panel-form">
             <header class="panel-form__header">
                 <nav class="welcome-topnav" aria-label="{{ __('Quick links') }}">
-                    @if ($panelView === 'cadre')
+                    @if (session('guest_verified'))
+                        <x-shared-user-menu
+                            :name="session('guest_name', __('Guest'))"
+                            :logout-url="route('guest.logout')"
+                        />
+                    @elseif ($panelView === 'cadre')
                         <a href="{{ route('home', ['view' => 'guest']) }}" class="welcome-topnav__link">{{ __('Guest login') }}</a>
                         <a href="{{ route('home', ['view' => 'staff']) }}" class="welcome-topnav__link">{{ __('Admin login') }}</a>
                     @elseif ($panelView === 'staff')

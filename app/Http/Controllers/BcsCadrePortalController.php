@@ -10,6 +10,7 @@ use App\Models\MenuItem;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -23,11 +24,12 @@ class BcsCadrePortalController extends Controller
 
         return view('bcs-cadre.booking', [
             'activeMenu' => 'booking',
-            'rooms' => Room::query()
-                ->where('status', 'available')
-                ->orderBy('floor')
-                ->orderBy('room_number')
-                ->get(),
+            'rooms' => $this->availableRooms($request),
+            'filters' => [
+                'check_in' => $this->queryString($request, 'check_in'),
+                'check_out' => $this->queryString($request, 'check_out'),
+                'room_type' => $this->queryString($request, 'room_type'),
+            ],
         ]);
     }
 
@@ -41,7 +43,7 @@ class BcsCadrePortalController extends Controller
             'activeMenu' => 'meal',
             'mealOptions' => $this->mealOptions(),
             'orders' => MealOrder::query()
-                ->where('cadre_reference', BcsCadreAuthController::DEMO_CADRE_REFERENCE)
+                ->where('cadre_reference', $this->currentCadreReference($request))
                 ->latest('order_date')
                 ->latest()
                 ->get(),
@@ -62,7 +64,7 @@ class BcsCadrePortalController extends Controller
 
         MealOrder::query()->create([
             ...$validated,
-            'cadre_reference' => BcsCadreAuthController::DEMO_CADRE_REFERENCE,
+            'cadre_reference' => $this->currentCadreReference($request),
             'ref' => $reference,
             'reference' => $reference,
             'menu_item_id' => $menuItem?->id,
@@ -117,7 +119,7 @@ class BcsCadrePortalController extends Controller
             'activeMenu' => 'feedback',
             'feedbackOptions' => $this->feedbackOptions(),
             'feedbackItems' => Feedback::query()
-                ->where('cadre_reference', BcsCadreAuthController::DEMO_CADRE_REFERENCE)
+                ->where('cadre_reference', $this->currentCadreReference($request))
                 ->latest()
                 ->get(),
             'editingFeedback' => $this->editableFeedback($request),
@@ -127,7 +129,7 @@ class BcsCadrePortalController extends Controller
     public function storeFeedback(FeedbackRequest $request): RedirectResponse
     {
         Feedback::query()->create([
-            'cadre_reference' => BcsCadreAuthController::DEMO_CADRE_REFERENCE,
+            'cadre_reference' => $this->currentCadreReference($request),
             'options' => array_values($request->validated('options')),
             'status' => 'submitted',
         ]);
@@ -169,7 +171,7 @@ class BcsCadrePortalController extends Controller
                 $days = ($index % 3) + 1;
 
                 return [
-                    'reference' => 'BK-' . str_pad((string) (83185 - ($index * 1413)), 5, '0', STR_PAD_LEFT),
+                    'reference' => 'BK-'.str_pad((string) (83185 - ($index * 1413)), 5, '0', STR_PAD_LEFT),
                     'check_in' => now()->subDays($index + 2)->toDateString(),
                     'check_out' => now()->subDays($index + 2)->addDays($days)->toDateString(),
                     'days' => $days,
@@ -194,6 +196,15 @@ class BcsCadrePortalController extends Controller
         }
 
         return null;
+    }
+
+    private function currentCadreReference(Request $request): string
+    {
+        $reference = $request->session()->get('cadre_reference');
+
+        return is_string($reference) && $reference !== ''
+            ? $reference
+            : BcsCadreAuthController::DEMO_CADRE_REFERENCE;
     }
 
     private function mealOptions(): array
@@ -224,6 +235,48 @@ class BcsCadrePortalController extends Controller
         ];
     }
 
+    private function availableRooms(Request $request)
+    {
+        $checkIn = $this->queryString($request, 'check_in');
+        $checkOut = $this->queryString($request, 'check_out');
+        $roomType = $this->queryString($request, 'room_type');
+
+        return Room::query()
+            ->where('status', 'available')
+            ->when(is_string($roomType) && $roomType !== '', fn ($query) => $query->where('room_type', $roomType))
+            ->when(
+                is_string($checkIn) && $checkIn !== '' && is_string($checkOut) && $checkOut !== '' && $this->canCheckBookingConflicts(),
+                function ($query) use ($checkIn, $checkOut): void {
+                    $query->whereNotExists(function ($subQuery) use ($checkIn, $checkOut): void {
+                        $subQuery->selectRaw('1')
+                            ->from('bookings')
+                            ->whereColumn('bookings.room_id', 'rooms.id')
+                            ->whereNotIn('bookings.status', ['cancelled', 'checked_out', 'completed'])
+                            ->where('bookings.check_in_date', '<', $checkOut)
+                            ->where('bookings.check_out_date', '>', $checkIn);
+                    });
+                }
+            )
+            ->orderBy('floor')
+            ->orderBy('room_number')
+            ->get();
+    }
+
+    private function canCheckBookingConflicts(): bool
+    {
+        return Schema::hasTable('bookings')
+            && Schema::hasColumn('bookings', 'room_id')
+            && Schema::hasColumn('bookings', 'check_in_date')
+            && Schema::hasColumn('bookings', 'check_out_date');
+    }
+
+    private function queryString(Request $request, string $key): ?string
+    {
+        $value = $request->query($key);
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
     private function feedbackOptions(): array
     {
         return [
@@ -244,7 +297,7 @@ class BcsCadrePortalController extends Controller
         }
 
         return MealOrder::query()
-            ->where('cadre_reference', BcsCadreAuthController::DEMO_CADRE_REFERENCE)
+            ->where('cadre_reference', $this->currentCadreReference($request))
             ->find($id);
     }
 
@@ -256,14 +309,14 @@ class BcsCadrePortalController extends Controller
         }
 
         return Feedback::query()
-            ->where('cadre_reference', BcsCadreAuthController::DEMO_CADRE_REFERENCE)
+            ->where('cadre_reference', $this->currentCadreReference($request))
             ->find($id);
     }
 
     private function uniqueMealReference(): string
     {
         do {
-            $reference = 'MO-' . Str::upper(Str::random(5));
+            $reference = 'MO-'.Str::upper(Str::random(5));
         } while (MealOrder::query()->where('reference', $reference)->exists());
 
         return $reference;
@@ -271,6 +324,8 @@ class BcsCadrePortalController extends Controller
 
     private function abortIfDifferentCadre(string $cadreReference): void
     {
-        abort_if($cadreReference !== BcsCadreAuthController::DEMO_CADRE_REFERENCE, 404);
+        $currentReference = session('cadre_reference', BcsCadreAuthController::DEMO_CADRE_REFERENCE);
+
+        abort_if($cadreReference !== $currentReference, 404);
     }
 }

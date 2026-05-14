@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Services\SmsOtpGateway;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,6 +13,8 @@ class BcsCadreAuthController extends Controller
     public const DEMO_CADRE_REFERENCE = '4532';
 
     public const DEMO_OTP = '12342';
+
+    public function __construct(private readonly SmsOtpGateway $otpGateway) {}
 
     public function showLogin(Request $request): RedirectResponse
     {
@@ -34,6 +38,9 @@ class BcsCadreAuthController extends Controller
         }
 
         $request->session()->put('cadre_step1', true);
+        $request->session()->put('cadre_reference', $validated['cadre_reference']);
+
+        $this->otpGateway->send($validated['cadre_reference'], __('Your BIAM hostel login OTP is ready.'));
 
         return redirect()->route('home');
     }
@@ -71,6 +78,9 @@ class BcsCadreAuthController extends Controller
         }
 
         $request->session()->put('cadre_auth', true);
+        $request->session()->put('cadre_name', User::query()
+            ->where('cadre_number', $request->session()->get('cadre_reference'))
+            ->value('name'));
         $request->session()->forget('cadre_step1');
 
         return redirect()->route('cadre.dashboard');
@@ -87,7 +97,16 @@ class BcsCadreAuthController extends Controller
 
     public function cancelOtp(Request $request): RedirectResponse
     {
-        $request->session()->forget('cadre_step1');
+        $request->session()->forget(['cadre_step1', 'cadre_reference']);
+
+        return redirect()->route('home');
+    }
+
+    public function logout(Request $request): RedirectResponse
+    {
+        $request->session()->forget(['cadre_auth', 'cadre_step1', 'cadre_reference', 'cadre_name']);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('home');
     }

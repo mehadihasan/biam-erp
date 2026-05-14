@@ -58,6 +58,23 @@ body.bcs-body {
     line-height: 1;
 }
 
+.bcs-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bcs-logout-btn {
+    min-height: 38px;
+    border: 1px solid var(--bcs-border);
+    border-radius: 999px;
+    background: #ffffff;
+    color: var(--bcs-text);
+    padding: 0 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
 button,
 input,
 select {
@@ -214,6 +231,14 @@ select {
     cursor: pointer;
 }
 
+.bcs-search-field select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
 .bcs-search-field--split {
     justify-content: flex-start;
 }
@@ -322,6 +347,23 @@ select {
     color: #fff;
     text-decoration: none;
     font-weight: 800;
+}
+
+.bcs-room-card__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.bcs-room-card__actions .bcs-card-btn {
+    margin-top: 0;
+}
+
+.bcs-card-btn--secondary {
+    border: 1px solid var(--bcs-border);
+    background: #ffffff;
+    color: var(--bcs-navy-dark);
 }
 
 .bcs-panel {
@@ -595,5 +637,9 @@ select {
 
     .bcs-room-card img {
         height: 190px;
+    }
+
+    .bcs-room-card__actions {
+        grid-template-columns: 1fr;
     }
 }

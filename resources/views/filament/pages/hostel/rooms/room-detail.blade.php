@@ -12,6 +12,7 @@
             default => 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200',
         };
         $statusLabel = ucfirst($room->status);
+        $cadreView = request()->session()->get('cadre_auth') === true && request()->boolean('cadre');
     @endphp
 
     <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
@@ -103,15 +104,17 @@
             </div>
 
             <div class="flex flex-wrap gap-3">
-                <x-filament::button
-                    tag="a"
-                    :href="\App\Filament\Pages\Hostel\Rooms\NewRoom::getUrl(panel: 'admin', parameters: ['record' => $room->id])"
-                    style="background-color: #173c63; color: #ffffff;"
-                >
-                    Edit room
-                </x-filament::button>
-                <x-filament::button color="gray" tag="a" :href="\App\Filament\Pages\Hostel\Rooms\RoomInventory::getUrl(panel: 'admin')">
-                    Back to inventory
+                @if (! $cadreView)
+                    <x-filament::button
+                        tag="a"
+                        :href="\App\Filament\Pages\Hostel\Rooms\NewRoom::getUrl(panel: 'admin', parameters: ['record' => $room->id])"
+                        style="background-color: #173c63; color: #ffffff;"
+                    >
+                        Edit room
+                    </x-filament::button>
+                @endif
+                <x-filament::button color="gray" tag="a" :href="$cadreView ? route('cadre.booking') : \App\Filament\Pages\Hostel\Rooms\RoomInventory::getUrl(panel: 'admin')">
+                    {{ $cadreView ? 'Back to rooms' : 'Back to inventory' }}
                 </x-filament::button>
             </div>
         </div>

@@ -8,11 +8,17 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet">
     @vite(['resources/css/bcs-cadre.css', 'resources/js/bcs-cadre.js'])
+    <x-shared-user-menu-styles />
 </head>
 <body class="bcs-body">
     <header class="bcs-topbar">
         <div class="bcs-topbar__brand">{{ __('BCS Cadre') }}</div>
-        <div class="bcs-topbar__avatar" aria-label="{{ __('Profile') }}">M</div>
+        <div class="bcs-topbar__actions">
+            <x-shared-user-menu
+                :name="session('cadre_name') ?: (session('cadre_reference') ? __('Cadre :reference', ['reference' => session('cadre_reference')]) : __('BCS Cadre'))"
+                :logout-url="route('cadre.logout')"
+            />
+        </div>
     </header>
 
     <div class="bcs-shell">

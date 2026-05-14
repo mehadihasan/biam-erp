@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\LogoutResponse;
+use App\Services\NullSmsOtpGateway;
+use App\Services\SmsOtpGateway;
+use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +15,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
+        $this->app->bind(SmsOtpGateway::class, NullSmsOtpGateway::class);
     }
 
     /**
