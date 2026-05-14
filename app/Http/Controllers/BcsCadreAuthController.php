@@ -78,9 +78,18 @@ class BcsCadreAuthController extends Controller
         }
 
         $request->session()->put('cadre_auth', true);
-        $request->session()->put('cadre_name', User::query()
+        $cadreName = User::query()
             ->where('cadre_number', $request->session()->get('cadre_reference'))
-            ->value('name'));
+            ->value('name');
+
+        if (! $cadreName && $request->session()->get('cadre_reference') === self::DEMO_CADRE_REFERENCE) {
+            $cadreName = User::query()
+                ->where('email', 'test@example.com')
+                ->oldest()
+                ->value('name');
+        }
+
+        $request->session()->put('cadre_name', $cadreName);
         $request->session()->forget('cadre_step1');
 
         return redirect()->route('cadre.dashboard');

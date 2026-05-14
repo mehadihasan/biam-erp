@@ -38,6 +38,6 @@ class AuthenticateFilamentOrCadre extends Authenticate
     private function isCadreAllowed(Request $request): bool
     {
         return $request->session()->get('cadre_auth') === true
-            && $request->is('admin/hostel/bookings/new', 'admin/hostel/rooms/detail');
+            && $request->is('admin/hostel/rooms/detail');
     }
 }

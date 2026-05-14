@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Filament\Pages\Hostel\Bookings\CheckInOut;
 use App\Models\Booking;
+use App\Services\RoomAvailabilityService;
 use Illuminate\Http\RedirectResponse;
 
 class BookingCheckInOutController extends Controller
 {
+    public function __construct(private readonly RoomAvailabilityService $roomAvailability) {}
+
     public function checkIn(Booking $booking): RedirectResponse
     {
         if (in_array($booking->status, ['pending', 'booked', 'confirmed'], true)) {
@@ -17,9 +20,7 @@ class BookingCheckInOutController extends Controller
                 'checked_out_at' => null,
             ]);
 
-            $booking->room?->update([
-                'status' => 'occupied',
-            ]);
+            $this->roomAvailability->blockBooking($booking->refresh());
         }
 
         return redirect()
@@ -35,9 +36,7 @@ class BookingCheckInOutController extends Controller
                 'checked_out_at' => now(),
             ]);
 
-            $booking->room?->update([
-                'status' => 'available',
-            ]);
+            $this->roomAvailability->releaseBooking($booking);
         }
 
         return redirect()

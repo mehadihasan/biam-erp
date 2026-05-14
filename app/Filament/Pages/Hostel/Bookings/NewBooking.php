@@ -6,6 +6,7 @@ use App\Filament\Pages\Hostel\BaseHostelPage;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\User;
+use App\Services\RoomAvailabilityService;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
@@ -72,8 +73,8 @@ class NewBooking extends BaseHostelPage
             ->orderBy('name')
             ->get();
 
-        $this->rooms = Room::query()
-            ->where('status', 'available')
+        $this->rooms = app(RoomAvailabilityService::class)
+            ->availableRoomQuery()
             ->orderBy('room_number')
             ->get();
 
@@ -152,6 +153,15 @@ class NewBooking extends BaseHostelPage
         }
 
         $room = Room::query()->findOrFail($validated['selectedRoomId']);
+
+        $roomAvailability = app(RoomAvailabilityService::class);
+
+        if (! $roomAvailability->roomIsAvailable($room, $validated['checkInDate'], $validated['checkOutDate'])) {
+            $this->addError('checkInDate', 'This room is not available for the selected dates.');
+
+            return;
+        }
+
         $calculation = $this->calculateRent(
             $room,
             $validated['checkInDate'],
@@ -175,6 +185,8 @@ class NewBooking extends BaseHostelPage
             'total_rent' => $calculation['total_rent'],
             'status' => 'pending',
         ]);
+
+        $roomAvailability->blockBooking($booking);
 
         if ($this->cadreFlow) {
             $this->successReference = 'BKG-'.str_pad((string) $booking->id, 4, '0', STR_PAD_LEFT);

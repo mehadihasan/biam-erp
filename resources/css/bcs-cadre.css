@@ -179,7 +179,7 @@ select {
 
 .bcs-search-card {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) minmax(250px, 1fr) 168px;
+    grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) minmax(300px, 1fr) 178px;
     gap: 12px;
     padding: 18px;
     margin-bottom: 27px;
@@ -196,6 +196,11 @@ select {
     border: 1px solid var(--bcs-border);
     border-radius: 10px;
     background: #fff;
+}
+
+.bcs-search-field__content {
+    flex: 1;
+    min-width: 0;
 }
 
 .bcs-search-field__icon {
@@ -224,28 +229,34 @@ select {
 }
 
 .bcs-search-field input[type='date'] {
-    position: absolute;
-    inset: 0;
     width: 100%;
-    opacity: 0;
+    height: 28px;
+    border: 0;
+    background: transparent;
+    color: var(--bcs-text);
+    font-size: 16px;
+    font-weight: 800;
+    outline: none;
     cursor: pointer;
 }
 
 .bcs-search-field select {
-    position: absolute;
-    inset: 0;
     width: 100%;
-    opacity: 0;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--bcs-text);
+    font-size: 16px;
+    font-weight: 700;
+    outline: none;
     cursor: pointer;
 }
 
-.bcs-search-field--split {
-    justify-content: flex-start;
-}
-
-.bcs-search-field--split span:last-child {
-    margin-left: auto;
-    padding-right: 10px;
+.bcs-search-combo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+    width: 100%;
 }
 
 .bcs-action-btn {
@@ -371,6 +382,307 @@ select {
     margin-bottom: 27px;
 }
 
+.bcs-booking-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.bcs-booking-form__wide {
+    grid-column: 1 / -1;
+}
+
+.bcs-readonly {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--bcs-border);
+    border-radius: 8px;
+    background: #eef2f6;
+    padding: 0 15px;
+    color: var(--bcs-text);
+    font-weight: 700;
+}
+
+.bcs-booking-summary {
+    grid-column: 1 / -1;
+    border-radius: 10px;
+    background: #e5e9ef;
+    padding: 16px;
+    color: var(--bcs-text);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.bcs-room-rent-summary {
+    margin-top: 20px;
+}
+
+.bcs-success-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.58);
+}
+
+.bcs-success-modal__panel {
+    width: min(460px, 100%);
+    border: 1px solid #d6dde6;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 42px 38px 38px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.24);
+}
+
+.bcs-success-modal__icon {
+    display: inline-flex;
+    width: 64px;
+    height: 64px;
+    align-items: center;
+    justify-content: center;
+    border: 5px solid #2a7d3d;
+    border-radius: 999px;
+    color: #2a7d3d;
+}
+
+.bcs-success-modal__icon svg {
+    width: 34px;
+    height: 34px;
+}
+
+.bcs-success-modal h2 {
+    margin: 18px 0 10px;
+    color: #1f2937;
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.bcs-success-modal p {
+    margin: 0 auto;
+    max-width: 330px;
+    color: #64748b;
+    font-size: 18px;
+    line-height: 1.35;
+}
+
+.bcs-success-modal__reference {
+    margin: 14px 0 28px !important;
+    color: #64748b !important;
+    font-size: 14px !important;
+}
+
+.bcs-success-modal__reference strong {
+    color: #1f2937;
+}
+
+.bcs-success-modal__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.bcs-modal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.bcs-modal-btn--primary {
+    background: var(--bcs-navy-dark);
+    color: #ffffff;
+}
+
+.bcs-modal-btn--secondary {
+    border: 1px solid var(--bcs-border);
+    background: #ffffff;
+    color: var(--bcs-text);
+}
+
+.bcs-room-detail-page {
+    width: 100%;
+}
+
+.bcs-room-detail-back {
+    display: inline-flex;
+    margin-bottom: 20px;
+    color: #155bb5;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.bcs-room-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(360px, 1fr) minmax(420px, 1fr);
+    gap: 28px;
+    align-items: start;
+}
+
+.bcs-room-detail-media {
+    overflow: hidden;
+    border-radius: 10px;
+    background: #dbe2ea;
+}
+
+.bcs-room-detail-media img {
+    display: block;
+    width: 100%;
+    height: min(42vw, 384px);
+    min-height: 280px;
+    object-fit: cover;
+}
+
+.bcs-room-detail-card {
+    border: 1px solid var(--bcs-border);
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 28px 30px;
+}
+
+.bcs-room-detail-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.bcs-room-detail-heading h1 {
+    margin: 0;
+    color: var(--bcs-text);
+    font-size: 30px;
+    line-height: 1.15;
+    font-weight: 800;
+}
+
+.bcs-room-detail-heading p {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 12px 0 0;
+    color: #526783;
+    font-size: 16px;
+}
+
+.bcs-room-detail-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: #eef2f6;
+    padding: 6px 12px;
+    color: #63738a;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.bcs-room-detail-description {
+    margin: 20px 0 0;
+    color: #001b33;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.bcs-room-detail-price {
+    margin-top: 20px;
+    color: var(--bcs-text);
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.bcs-room-detail-price span {
+    color: #526783;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.bcs-room-detail-divider {
+    margin: 30px 0;
+    border-top: 1px solid var(--bcs-border);
+}
+
+.bcs-room-booking h2 {
+    margin: 0 0 26px;
+    color: var(--bcs-text);
+    font-size: 23px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.bcs-room-booking-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.bcs-room-booking label span {
+    display: block;
+    margin-bottom: 8px;
+    color: #001b33;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.bcs-room-booking input[type='date'] {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--bcs-border);
+    border-radius: 8px;
+    background: #f8fafc;
+    padding: 0 14px;
+    color: var(--bcs-text);
+    font-size: 16px;
+}
+
+.bcs-room-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-top: 20px;
+    border-radius: 8px;
+    background: #eef0f3;
+    padding: 16px 14px;
+    color: #526783;
+    font-size: 16px;
+}
+
+.bcs-room-price-row strong {
+    color: #001b33;
+    white-space: nowrap;
+}
+
+.bcs-room-detail-error {
+    margin-top: 16px;
+    color: #dc2626;
+    font-size: 13px;
+}
+
+.bcs-room-booking-button {
+    display: inline-flex;
+    width: 100%;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bcs-navy-dark);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
 .bcs-form-grid {
     display: grid;
     grid-template-columns: 295px 296px minmax(320px, 1fr) 296px;
@@ -379,11 +691,13 @@ select {
 }
 
 .bcs-form-grid label,
+.bcs-booking-form label,
 .bcs-feedback-form label {
     display: block;
 }
 
 .bcs-form-grid span,
+.bcs-booking-form span,
 .bcs-feedback-form span {
     display: block;
     margin-bottom: 8px;
@@ -396,8 +710,16 @@ select {
     font-style: normal;
 }
 
+.bcs-error {
+    margin-top: 6px !important;
+    color: #dc2626 !important;
+    font-size: 12px !important;
+}
+
 .bcs-form-grid input,
-.bcs-form-grid select {
+.bcs-form-grid select,
+.bcs-booking-form input,
+.bcs-booking-form select {
     width: 100%;
     height: 44px;
     padding: 0 15px;
@@ -625,6 +947,7 @@ select {
 
     .bcs-search-card,
     .bcs-form-grid,
+    .bcs-booking-form,
     .bcs-room-grid,
     .bcs-checkbox-grid,
     .bcs-billing-stats {
@@ -641,5 +964,37 @@ select {
 
     .bcs-room-card__actions {
         grid-template-columns: 1fr;
+    }
+
+    .bcs-booking-form__wide,
+    .bcs-booking-summary {
+        grid-column: auto;
+    }
+
+    .bcs-success-modal__panel {
+        padding: 34px 24px 28px;
+    }
+
+    .bcs-success-modal__actions {
+        grid-template-columns: 1fr;
+    }
+
+    .bcs-room-detail-layout,
+    .bcs-room-booking-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bcs-room-detail-card {
+        padding: 22px 18px;
+    }
+
+    .bcs-room-detail-media img {
+        height: 260px;
+        min-height: 220px;
+    }
+
+    .bcs-room-price-row {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }

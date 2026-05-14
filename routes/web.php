@@ -149,6 +149,9 @@ Route::prefix('cadre')->name('cadre.')->group(function () {
     Route::middleware('cadre.auth')->group(function () {
         Route::get('/dashboard', [BcsCadreAuthController::class, 'dashboard'])->name('dashboard');
         Route::get('/booking', [BcsCadrePortalController::class, 'booking'])->name('booking');
+        Route::get('/rooms/{room}', [BcsCadrePortalController::class, 'room'])->name('rooms.show');
+        Route::get('/bookings/new', [BcsCadrePortalController::class, 'newBooking'])->name('bookings.new');
+        Route::post('/bookings', [BcsCadrePortalController::class, 'storeBooking'])->name('bookings.store');
         Route::get('/meals', [BcsCadrePortalController::class, 'mealOrder'])->name('meals');
         Route::post('/meals', [BcsCadrePortalController::class, 'storeMealOrder'])->name('meals.store');
         Route::put('/meals/{mealOrder}', [BcsCadrePortalController::class, 'updateMealOrder'])->name('meals.update');

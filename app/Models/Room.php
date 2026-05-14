@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Room extends Model
 {
@@ -25,6 +26,11 @@ class Room extends Model
             'base_rate' => 'decimal:2',
             'images' => 'array',
         ];
+    }
+
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(RoomAvailability::class);
     }
 
     /**
@@ -89,7 +95,7 @@ class Room extends Model
             return asset($path);
         }
 
-        return asset('storage/' . ltrim($path, '/'));
+        return asset('storage/'.ltrim($path, '/'));
     }
 
     /**

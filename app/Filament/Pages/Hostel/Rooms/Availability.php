@@ -3,15 +3,16 @@
 namespace App\Filament\Pages\Hostel\Rooms;
 
 use App\Filament\Pages\Hostel\BaseHostelPage;
+use App\Filament\Pages\Hostel\Bookings\NewBooking;
 use App\Models\Room;
+use App\Services\RoomAvailabilityService;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Schema;
 
 class Availability extends BaseHostelPage
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-magnifying-glass';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-magnifying-glass';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Room Management';
+    protected static string|\UnitEnum|null $navigationGroup = 'Room Management';
 
     protected static ?string $title = 'Room Availability';
 
@@ -55,20 +56,8 @@ class Availability extends BaseHostelPage
             return Room::query()->whereRaw('1 = 0')->get();
         }
 
-        return Room::query()
-            ->where('status', 'available')
-            ->when($this->canCheckBookingConflicts(), function ($query): void {
-                $columns = $this->bookingDateColumns();
-
-                $query->whereNotExists(function ($subQuery) use ($columns): void {
-                    $subQuery->selectRaw('1')
-                        ->from('bookings')
-                        ->whereColumn('bookings.room_id', 'rooms.id')
-                        ->whereNotIn('bookings.status', ['cancelled', 'checked_out', 'completed'])
-                        ->where($columns['check_in'], '<', $this->checkOutDate)
-                        ->where($columns['check_out'], '>', $this->checkInDate);
-                });
-            })
+        return app(RoomAvailabilityService::class)
+            ->availableRoomQuery($this->checkInDate, $this->checkOutDate)
             ->orderBy('floor')
             ->orderBy('room_number')
             ->get();
@@ -86,32 +75,10 @@ class Availability extends BaseHostelPage
 
     public function bookNowUrl(Room $room): string
     {
-        return \App\Filament\Pages\Hostel\Bookings\NewBooking::getUrl([
+        return NewBooking::getUrl([
             'room_id' => $room->id,
             'check_in' => $this->checkInDate,
             'check_out' => $this->checkOutDate,
         ], panel: 'admin');
-    }
-
-    private function canCheckBookingConflicts(): bool
-    {
-        if (! Schema::hasTable('bookings')) {
-            return false;
-        }
-
-        $columns = $this->bookingDateColumns();
-
-        return Schema::hasColumn('bookings', 'room_id')
-            && Schema::hasColumn('bookings', $columns['check_in'])
-            && Schema::hasColumn('bookings', $columns['check_out']);
-    }
-
-    /** @return array{check_in: string, check_out: string} */
-    private function bookingDateColumns(): array
-    {
-        return [
-            'check_in' => Schema::hasColumn('bookings', 'check_in_date') ? 'check_in_date' : 'check_in',
-            'check_out' => Schema::hasColumn('bookings', 'check_out_date') ? 'check_out_date' : 'check_out',
-        ];
     }
 }
