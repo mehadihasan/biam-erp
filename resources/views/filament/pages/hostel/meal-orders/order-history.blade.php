@@ -133,7 +133,7 @@
                                 <td>{{ $order->guest?->name ?: '-' }}</td>
                                 <td>{{ $room ?: '-' }}</td>
                                 <td><span class="history-badge">{{ $order->meal_type }}</span></td>
-                                <td>{{ $order->created_at?->toDateString() }}</td>
+                                <td>{{ $order->order_date?->toFormattedDateString() ?: '-' }}</td>
                                 <td>{{ $order->menuItem?->name ?: $order->menu_item }}</td>
                                 <td>{{ $order->quantity }}</td>
                                 <td>৳{{ number_format($order->display_total, 0) }}</td>

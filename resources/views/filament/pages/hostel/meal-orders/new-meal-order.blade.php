@@ -18,6 +18,17 @@
             font-weight: 500;
         }
 
+        .meal-inline-fields {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(220px, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .meal-inline-fields .meal-field {
+            margin-bottom: 0;
+        }
+
         .meal-control {
             width: 100%;
             height: 52px;
@@ -105,6 +116,10 @@
                 padding: 24px 18px;
             }
 
+            .meal-inline-fields {
+                grid-template-columns: 1fr;
+            }
+
             .meal-checkbox-grid {
                 grid-template-columns: 1fr;
             }
@@ -119,18 +134,26 @@
     <div class="space-y-8">
 
         <form wire:submit="save" class="meal-form-card dark:border-gray-800 dark:bg-gray-900">
-            <label class="meal-field">
-                <span>Guest (checked-in only)</span>
-                <select wire:model.live="guestId" class="meal-control">
-                    <option value="">Select...</option>
-                    @foreach ($guests as $guest)
-                        <option value="{{ $guest->id }}">
-                            {{ $guest->name }}{{ $guest->activeBooking?->room?->room_number ? ' - Room ' . $guest->activeBooking->room->room_number : '' }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('guestId') <span class="meal-error">{{ $message }}</span> @enderror
-            </label>
+            <div class="meal-inline-fields">
+                <label class="meal-field">
+                    <span>Guest (checked-in only)</span>
+                    <select wire:model.live="guestId" class="meal-control">
+                        <option value="">Select...</option>
+                        @foreach ($guests as $guest)
+                            <option value="{{ $guest->id }}">
+                                {{ $guest->name }}{{ $guest->activeBooking?->room?->room_number ? ' - Room ' . $guest->activeBooking->room->room_number : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('guestId') <span class="meal-error">{{ $message }}</span> @enderror
+                </label>
+
+                <label class="meal-field">
+                    <span>Date</span>
+                    <input wire:model.live="date" type="date" min="{{ $this->tomorrowDate() }}" class="meal-control" required>
+                    @error('date') <span class="meal-error">{{ $message }}</span> @enderror
+                </label>
+            </div>
 
             <label class="meal-field">
                 <span>Meal Type</span>

@@ -11,9 +11,9 @@ class OrderHistory extends BaseHostelPage
 {
     use WithPagination;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clock';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clock';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Meal Order';
+    protected static string|\UnitEnum|null $navigationGroup = 'Meal Order';
 
     protected static ?string $title = 'Order History';
 
@@ -37,7 +37,7 @@ class OrderHistory extends BaseHostelPage
         return MealOrder::query()
             ->with(['guest.activeBooking.room', 'menuItem'])
             ->when(trim($this->search) !== '', function ($query): void {
-                $search = '%' . trim($this->search) . '%';
+                $search = '%'.trim($this->search).'%';
 
                 $query->where(function ($subQuery) use ($search): void {
                     $subQuery
@@ -45,6 +45,7 @@ class OrderHistory extends BaseHostelPage
                         ->orWhereHas('guest', fn ($guestQuery) => $guestQuery->where('name', 'like', $search));
                 });
             })
+            ->latest('order_date')
             ->latest()
             ->paginate(10);
     }

@@ -7,14 +7,15 @@ use App\Models\MealOrder;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class NewMealOrder extends BaseHostelPage
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-plus';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-plus';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Meal Order';
+    protected static string|\UnitEnum|null $navigationGroup = 'Meal Order';
 
     protected static ?string $title = 'New Meal Order';
 
@@ -30,6 +31,8 @@ class NewMealOrder extends BaseHostelPage
 
     public ?int $guestId = null;
 
+    public ?string $date = null;
+
     /**
      * @var list<string>
      */
@@ -39,6 +42,7 @@ class NewMealOrder extends BaseHostelPage
 
     public function mount(): void
     {
+        $this->date = $this->tomorrowDate();
         $this->loadGuests();
     }
 
@@ -67,6 +71,7 @@ class NewMealOrder extends BaseHostelPage
                         ->whereNull('bookings.checked_out_at');
                 })),
             ],
+            'date' => ['required', 'date', 'after:today'],
             'mealTypes' => ['required', 'array', 'min:1'],
             'mealTypes.*' => ['required', Rule::in(['breakfast', 'lunch', 'supper'])],
             'quantity' => ['required', 'integer', 'min:1', 'max:100'],
@@ -83,7 +88,7 @@ class NewMealOrder extends BaseHostelPage
                 'reference' => $ref,
                 'guest_id' => $guest->id,
                 'cadre_reference' => $guest->cadre_number ?: (string) $guest->id,
-                'order_date' => now()->toDateString(),
+                'order_date' => $validated['date'],
                 'meal_type' => $mealType,
                 'menu_item_id' => null,
                 'menu_item' => ucfirst($mealType),
@@ -107,16 +112,21 @@ class NewMealOrder extends BaseHostelPage
     private function uniqueReference(): string
     {
         do {
-            $ref = 'MO-' . random_int(10000, 99999);
+            $ref = 'MO-'.random_int(10000, 99999);
         } while (MealOrder::query()->where('ref', $ref)->orWhere('reference', $ref)->exists());
 
         return $ref;
     }
 
+    public function tomorrowDate(): string
+    {
+        return Carbon::tomorrow()->toDateString();
+    }
+
     private function uniqueCouponCode(): string
     {
         do {
-            $coupon = 'CPN-' . Str::upper(Str::random(6));
+            $coupon = 'CPN-'.Str::upper(Str::random(6));
         } while (MealOrder::query()->where('coupon_code', $coupon)->exists());
 
         return $coupon;

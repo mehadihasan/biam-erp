@@ -3,6 +3,10 @@
 @section('title', __('Meal Order'))
 
 @section('content')
+    @php
+        $minimumOrderDate = now()->addDay()->toDateString();
+    @endphp
+
     <div class="bcs-page">
         <header class="bcs-page__header bcs-page__header--icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 2-2.5 2.5M21 7l-2.5 2.5M9 11l10 10M5 2v7a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4V2M9 2v20"></path></svg>
@@ -20,7 +24,7 @@
                 @endif
                 <label>
                     <span>{{ __('Date') }} <em>*</em></span>
-                    <input type="date" name="order_date" value="{{ old('order_date', optional($editingOrder?->order_date)->toDateString() ?? now()->toDateString()) }}" required>
+                    <input type="date" name="order_date" value="{{ old('order_date', optional($editingOrder?->order_date)->toDateString() ?? $minimumOrderDate) }}" min="{{ $minimumOrderDate }}" required>
                 </label>
                 <label>
                     <span>{{ __('Meal Type') }} <em>*</em></span>

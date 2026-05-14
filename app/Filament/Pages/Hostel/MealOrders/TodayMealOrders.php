@@ -8,9 +8,9 @@ use Illuminate\Support\Collection;
 
 class TodayMealOrders extends BaseHostelPage
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Meal Order';
+    protected static string|\UnitEnum|null $navigationGroup = 'Meal Order';
 
     protected static ?string $title = "Today's Orders";
 
@@ -31,7 +31,7 @@ class TodayMealOrders extends BaseHostelPage
     {
         $orders = MealOrder::query()
             ->with(['guest', 'menuItem'])
-            ->whereDate('created_at', now()->toDateString())
+            ->whereDate('order_date', now()->toDateString())
             ->get()
             ->groupBy('meal_type');
 
