@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Room;
 use App\Models\RoomAvailability;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Schema;
 
 class RoomAvailabilityService
@@ -49,6 +50,38 @@ class RoomAvailabilityService
         }
 
         return ! $this->roomHasBlockedRange($room->id, $checkIn, $checkOut);
+    }
+
+    public function availableBedSeatCount(Room $room, ?string $checkIn = null, ?string $checkOut = null): int
+    {
+        if ($room->status === 'maintenance') {
+            return 0;
+        }
+
+        $capacity = max(0, (int) $room->capacity);
+
+        if (! $this->hasDateRange($checkIn, $checkOut)) {
+            return $capacity;
+        }
+
+        $reserved = (int) Booking::query()
+            ->where('room_id', $room->id)
+            ->whereIn('status', $this->blockingBookingStatuses())
+            ->where('check_in_date', '<', $checkOut)
+            ->where('check_out_date', '>', $checkIn)
+            ->sum('number_of_rooms');
+
+        return max(0, $capacity - $reserved);
+    }
+
+    public function roomsWithAvailableBeds(string $checkIn, string $checkOut): Collection
+    {
+        return Room::query()
+            ->where('status', '!=', 'maintenance')
+            ->orderBy('room_number')
+            ->get()
+            ->filter(fn (Room $room): bool => $this->availableBedSeatCount($room, $checkIn, $checkOut) > 0)
+            ->values();
     }
 
     public function blockBooking(Booking $booking): void

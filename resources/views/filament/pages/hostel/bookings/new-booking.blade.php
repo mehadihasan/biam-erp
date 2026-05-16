@@ -14,6 +14,17 @@
             row-gap: 20px;
         }
 
+        .booking-field-row,
+        .booking-date-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px 28px;
+        }
+
+        .booking-full-width {
+            grid-column: 1 / -1;
+        }
+
         .booking-field {
             display: flex;
             min-width: 0;
@@ -35,6 +46,11 @@
             color: #001b33;
             font-size: 16px;
             outline: none;
+        }
+
+        .booking-date-field,
+        .booking-date-field .booking-control {
+            cursor: pointer;
         }
 
         textarea.booking-control {
@@ -177,6 +193,12 @@
                 row-gap: 18px;
             }
 
+            .booking-field-row,
+            .booking-date-row {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
             .booking-actions {
                 flex-direction: column;
             }
@@ -204,7 +226,7 @@
 
         <form wire:submit="save" class="booking-form-card dark:border-gray-800 dark:bg-gray-900">
             <div class="booking-form-grid">
-                <div class="space-y-5">
+                <div class="booking-field-row booking-full-width">
                     <label class="booking-field">
                         <span>Guest <span class="booking-required">*</span></span>
                         <select wire:model.live="selectedGuestId" name="guest_id" class="booking-control" @disabled($cadreFlow)>
@@ -219,56 +241,94 @@
                     </label>
 
                     <label class="booking-field">
-                        <span>Room Type</span>
-                        <select wire:model.live="roomType" name="room_type" class="booking-control">
-                            <option value="vip">VIP</option>
-                            <option value="ac">AC</option>
-                            <option value="non_ac">Non_AC</option>
-                        </select>
-                        @error('roomType') <span class="booking-error">{{ $message }}</span> @enderror
-                    </label>
-
-                    <label class="booking-field">
-                        <span>Room <span class="booking-required">*</span></span>
-                        <select wire:model.live="selectedRoomId" name="room_id" class="booking-control">
-                            <option value="">Select room...</option>
-                            @foreach ($rooms as $room)
-                                <option value="{{ $room->id }}">
-                                    {{ $room->room_number }} - BDT {{ number_format((float) $room->base_rate, 0) }}/night
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('selectedRoomId') <span class="booking-error">{{ $message }}</span> @enderror
-                    </label>
-
-                    <label class="booking-field">
-                        <span>Number of Rooms</span>
-                        <input wire:model.live="numberOfRooms" name="number_of_rooms" type="number" min="1" class="booking-control">
-                        @error('numberOfRooms') <span class="booking-error">{{ $message }}</span> @enderror
+                        <span>Ref. ID</span>
+                        <input wire:model.live="ref" name="ref" type="text" class="booking-control">
+                        @error('ref') <span class="booking-error">{{ $message }}</span> @enderror
                     </label>
                 </div>
 
-                <div class="space-y-5">
-                    <label class="booking-field">
+                <div class="booking-date-row booking-full-width">
+                    <label
+                        class="booking-field booking-date-field"
+                        x-data="{ openDatePicker(input) { input?.focus(); if (input?.showPicker) { try { input.showPicker() } catch (e) {} } } }"
+                        x-on:click="openDatePicker($refs.checkInInput)"
+                        x-on:keydown.enter.prevent="openDatePicker($refs.checkInInput)"
+                        x-on:keydown.space.prevent="openDatePicker($refs.checkInInput)"
+                        tabindex="0"
+                    >
                         <span>Check-in Date <span class="booking-required">*</span></span>
-                        <input wire:model.live="checkInDate" name="check_in" type="date" class="booking-control">
+                        <input x-ref="checkInInput" wire:model.live="checkInDate" name="check_in" type="date" class="booking-control">
                         <span class="booking-note">Check-in Time: 2:00 PM - Fixed by BIAM Policy</span>
                         @error('checkInDate') <span class="booking-error">{{ $message }}</span> @enderror
                     </label>
 
-                    <label class="booking-field">
+                    <label
+                        class="booking-field booking-date-field"
+                        x-data="{ openDatePicker(input) { input?.focus(); if (input?.showPicker) { try { input.showPicker() } catch (e) {} } } }"
+                        x-on:click="openDatePicker($refs.checkOutInput)"
+                        x-on:keydown.enter.prevent="openDatePicker($refs.checkOutInput)"
+                        x-on:keydown.space.prevent="openDatePicker($refs.checkOutInput)"
+                        tabindex="0"
+                    >
                         <span>Check-out Date <span class="booking-required">*</span></span>
-                        <input wire:model.live="checkOutDate" name="check_out" type="date" class="booking-control">
+                        <input x-ref="checkOutInput" wire:model.live="checkOutDate" name="check_out" type="date" class="booking-control">
                         <span class="booking-note">Check-out Time: 12:00 Noon - Fixed by BIAM Policy</span>
                         @error('checkOutDate') <span class="booking-error">{{ $message }}</span> @enderror
                     </label>
+                </div>
+
+                <div class="booking-field-row booking-full-width">
+                    <label class="booking-field">
+                        <span>Room <span class="booking-required">*</span></span>
+                        <select wire:model.live="selectedRoomId" name="room_id" class="booking-control" @disabled(! $checkInDate || ! $checkOutDate || $this->availableRooms->isEmpty())>
+                            @if (! $checkInDate || ! $checkOutDate)
+                                <option value="">Select dates first...</option>
+                            @elseif ($this->availableRooms->isEmpty())
+                                <option value="">No rooms available for selected dates</option>
+                            @else
+                                <option value="">Select room...</option>
+                                @foreach ($this->availableRooms as $room)
+                                    <option value="{{ $room->id }}">
+                                        {{ $room->room_number }} - BDT {{ number_format((float) $room->base_rate, 0) }}/night
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @if ($checkInDate && $checkOutDate && $this->availableRooms->isEmpty())
+                            <span class="booking-error">No rooms have available bed/seats for the selected dates.</span>
+                        @endif
+                        @error('selectedRoomId') <span class="booking-error">{{ $message }}</span> @enderror
+                    </label>
 
                     <label class="booking-field">
-                        <span>Notes</span>
-                        <textarea wire:model.live="notes" name="notes" class="booking-control"></textarea>
-                        @error('notes') <span class="booking-error">{{ $message }}</span> @enderror
+                        <span>Bed/Seat <span class="booking-required">*</span></span>
+                        <select wire:model.live="numberOfRooms" name="number_of_rooms" class="booking-control" @disabled(! $selectedRoomId || $this->bedSeatOptions === [])>
+                            @if (! $selectedRoomId)
+                                <option value="">Select room first...</option>
+                            @elseif ($this->bedSeatOptions === [])
+                                <option value="">No bed/seat available</option>
+                            @else
+                                @foreach ($this->bedSeatOptions as $bedSeat)
+                                    <option value="{{ $bedSeat }}">{{ $bedSeat }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @if ($selectedRoomId && is_int($this->availableBedSeatCount))
+                            @if ($this->availableBedSeatCount > 0)
+                                <span class="booking-note">Available bed/seats: {{ implode(', ', $this->bedSeatOptions) }}</span>
+                            @else
+                                <span class="booking-error">No bed/seat is available for this room.</span>
+                            @endif
+                        @endif
+                        @error('numberOfRooms') <span class="booking-error">{{ $message }}</span> @enderror
                     </label>
                 </div>
+
+                <label class="booking-field booking-full-width">
+                    <span>Notes</span>
+                    <textarea wire:model.live="notes" name="notes" class="booking-control"></textarea>
+                    @error('notes') <span class="booking-error">{{ $message }}</span> @enderror
+                </label>
             </div>
 
             @if ($this->calculation)
@@ -296,7 +356,7 @@
             @endif
 
             <div class="booking-actions">
-                <button type="submit" class="booking-primary">Create Booking</button>
+                <button type="submit" class="booking-primary" @disabled($selectedRoomId && $this->availableBedSeatCount === 0)>Create Booking</button>
                 <a href="{{ $cadreFlow ? route('cadre.booking') : \App\Filament\Pages\Hostel\Bookings\AllBookings::getUrl(panel: 'admin') }}" class="booking-cancel">Cancel</a>
             </div>
         </form>

@@ -35,6 +35,8 @@ class NewBooking extends BaseHostelPage
 
     public ?int $selectedGuestId = null;
 
+    public ?string $ref = null;
+
     public string $roomType = 'ac';
 
     public ?int $selectedRoomId = null;
@@ -73,10 +75,7 @@ class NewBooking extends BaseHostelPage
             ->orderBy('name')
             ->get();
 
-        $this->rooms = app(RoomAvailabilityService::class)
-            ->availableRoomQuery()
-            ->orderBy('room_number')
-            ->get();
+        $this->rooms = new Collection;
 
         $this->selectedRoomId = request()->integer('room_id') ?: null;
         $this->selectedGuestId = $this->cadreFlow ? $cadreUser?->id : null;
@@ -105,6 +104,55 @@ class NewBooking extends BaseHostelPage
         if (is_string($roomType) && $roomType !== '') {
             $this->roomType = $roomType;
         }
+
+        $this->clampBedSeatSelection();
+    }
+
+    public function updatedCheckInDate(): void
+    {
+        $this->resetRoomSelection();
+    }
+
+    public function updatedCheckOutDate(): void
+    {
+        $this->resetRoomSelection();
+    }
+
+    public function getAvailableRoomsProperty(): Collection
+    {
+        if (! $this->hasValidDateRange()) {
+            return new Collection;
+        }
+
+        return app(RoomAvailabilityService::class)
+            ->roomsWithAvailableBeds($this->checkInDate, $this->checkOutDate);
+    }
+
+    public function getAvailableBedSeatCountProperty(): ?int
+    {
+        if (! $this->selectedRoomId) {
+            return null;
+        }
+
+        $room = Room::query()->find($this->selectedRoomId);
+
+        if (! $room) {
+            return null;
+        }
+
+        return app(RoomAvailabilityService::class)
+            ->availableBedSeatCount($room, $this->checkInDate, $this->checkOutDate);
+    }
+
+    public function getBedSeatOptionsProperty(): array
+    {
+        $availableBedSeatCount = $this->getAvailableBedSeatCountProperty();
+
+        if (! is_int($availableBedSeatCount) || $availableBedSeatCount < 1) {
+            return [];
+        }
+
+        return range(1, $availableBedSeatCount);
     }
 
     public function getCalculationProperty(): ?array
@@ -140,8 +188,8 @@ class NewBooking extends BaseHostelPage
 
         $validated = $this->validate([
             'selectedGuestId' => $guestRules,
+            'ref' => ['nullable', 'string', 'max:50', 'unique:bookings,ref'],
             'selectedRoomId' => ['required', 'exists:rooms,id'],
-            'roomType' => ['required', 'in:vip,ac,non_ac'],
             'checkInDate' => ['required', 'date'],
             'checkOutDate' => ['required', 'date', 'after:checkInDate'],
             'numberOfRooms' => ['required', 'integer', 'min:1'],
@@ -153,11 +201,25 @@ class NewBooking extends BaseHostelPage
         }
 
         $room = Room::query()->findOrFail($validated['selectedRoomId']);
+        $availableRoomIds = $this->getAvailableRoomsProperty()->pluck('id')->all();
+
+        if (! in_array($room->id, $availableRoomIds, true)) {
+            $this->addError('selectedRoomId', 'Please select an available room for the selected dates.');
+
+            return;
+        }
 
         $roomAvailability = app(RoomAvailabilityService::class);
+        $availableBedSeatCount = $roomAvailability->availableBedSeatCount($room, $validated['checkInDate'], $validated['checkOutDate']);
 
-        if (! $roomAvailability->roomIsAvailable($room, $validated['checkInDate'], $validated['checkOutDate'])) {
+        if ($availableBedSeatCount < 1) {
             $this->addError('checkInDate', 'This room is not available for the selected dates.');
+
+            return;
+        }
+
+        if ((int) $validated['numberOfRooms'] > $availableBedSeatCount) {
+            $this->addError('numberOfRooms', 'The selected bed/seat count exceeds availability.');
 
             return;
         }
@@ -170,9 +232,10 @@ class NewBooking extends BaseHostelPage
         );
 
         $booking = Booking::query()->create([
+            'ref' => $validated['ref'] ?? null,
             'user_id' => $validated['selectedGuestId'],
             'room_id' => $room->id,
-            'room_type' => $validated['roomType'],
+            'room_type' => $room->room_type,
             'number_of_rooms' => $validated['numberOfRooms'],
             'check_in_date' => $validated['checkInDate'],
             'check_out_date' => $validated['checkOutDate'],
@@ -208,6 +271,7 @@ class NewBooking extends BaseHostelPage
         $this->showSuccessModal = false;
         $this->successReference = null;
         $this->selectedRoomId = null;
+        $this->ref = null;
         $this->checkInDate = null;
         $this->checkOutDate = null;
         $this->numberOfRooms = 1;
@@ -252,5 +316,38 @@ class NewBooking extends BaseHostelPage
             'booking_money' => $bookingMoney,
             'total_rent' => $calculatedRent,
         ];
+    }
+
+    private function clampBedSeatSelection(): void
+    {
+        $availableBedSeatCount = $this->getAvailableBedSeatCountProperty();
+
+        if (! is_int($availableBedSeatCount) || $availableBedSeatCount < 1) {
+            $this->numberOfRooms = 1;
+
+            return;
+        }
+
+        $this->numberOfRooms = min(max(1, (int) $this->numberOfRooms), $availableBedSeatCount);
+    }
+
+    private function resetRoomSelection(): void
+    {
+        $this->selectedRoomId = null;
+        $this->numberOfRooms = 1;
+    }
+
+    private function hasValidDateRange(): bool
+    {
+        if (! $this->checkInDate || ! $this->checkOutDate) {
+            return false;
+        }
+
+        try {
+            return Carbon::parse($this->checkOutDate)->startOfDay()
+                ->greaterThan(Carbon::parse($this->checkInDate)->startOfDay());
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }
