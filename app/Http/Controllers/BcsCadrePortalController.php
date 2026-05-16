@@ -199,21 +199,22 @@ class BcsCadrePortalController extends Controller
 
         foreach (array_values(array_unique($validated['meal_types'])) as $mealType) {
             $unitPrice = $this->mealTypeUnitPrice($mealType);
+            $quantity = (int) $validated['quantities'][$mealType];
             $reference = $this->uniqueMealReference();
 
             MealOrder::query()->create([
                 'order_date' => $validated['order_date'],
                 'meal_type' => $mealType,
                 'menu_item' => $this->mealTypeLabel($mealType),
-                'quantity' => $validated['quantity'],
+                'quantity' => $quantity,
                 'cadre_reference' => $this->currentCadreReference($request),
                 'guest_id' => $portalUser->id,
                 'ref' => $reference,
                 'reference' => $reference,
                 'menu_item_id' => null,
                 'unit_price' => $unitPrice,
-                'total_price' => $unitPrice * (int) $validated['quantity'],
-                'total' => $unitPrice * (int) $validated['quantity'],
+                'total_price' => $unitPrice * $quantity,
+                'total' => $unitPrice * $quantity,
                 'status' => 'pending',
             ]);
         }
@@ -229,20 +230,22 @@ class BcsCadrePortalController extends Controller
         $mealTypes = array_values(array_unique($validated['meal_types']));
         $mealType = $mealTypes[0];
         $unitPrice = $this->mealTypeUnitPrice($mealType);
+        $quantity = (int) $validated['quantities'][$mealType];
 
         $mealOrder->update([
             'order_date' => $validated['order_date'],
             'meal_type' => $mealType,
             'menu_item' => $this->mealTypeLabel($mealType),
-            'quantity' => $validated['quantity'],
+            'quantity' => $quantity,
             'menu_item_id' => null,
             'unit_price' => $unitPrice,
-            'total_price' => $unitPrice * (int) $validated['quantity'],
-            'total' => $unitPrice * (int) $validated['quantity'],
+            'total_price' => $unitPrice * $quantity,
+            'total' => $unitPrice * $quantity,
         ]);
 
         foreach (array_slice($mealTypes, 1) as $additionalMealType) {
             $additionalUnitPrice = $this->mealTypeUnitPrice($additionalMealType);
+            $additionalQuantity = (int) $validated['quantities'][$additionalMealType];
             $reference = $this->uniqueMealReference();
             $portalUser = $this->currentPortalUser($request);
 
@@ -250,15 +253,15 @@ class BcsCadrePortalController extends Controller
                 'order_date' => $validated['order_date'],
                 'meal_type' => $additionalMealType,
                 'menu_item' => $this->mealTypeLabel($additionalMealType),
-                'quantity' => $validated['quantity'],
+                'quantity' => $additionalQuantity,
                 'cadre_reference' => $this->currentCadreReference($request),
                 'guest_id' => $mealOrder->guest_id ?: $portalUser?->id,
                 'ref' => $reference,
                 'reference' => $reference,
                 'menu_item_id' => null,
                 'unit_price' => $additionalUnitPrice,
-                'total_price' => $additionalUnitPrice * (int) $validated['quantity'],
-                'total' => $additionalUnitPrice * (int) $validated['quantity'],
+                'total_price' => $additionalUnitPrice * $additionalQuantity,
+                'total' => $additionalUnitPrice * $additionalQuantity,
                 'status' => $mealOrder->status,
             ]);
         }

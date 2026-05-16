@@ -694,9 +694,11 @@ select {
 }
 
 .bcs-meal-form {
-    grid-template-columns: minmax(170px, 220px) minmax(460px, 1fr) minmax(96px, 130px);
+    grid-template-columns: minmax(240px, 330px) minmax(520px, 720px);
     column-gap: 18px;
     row-gap: 16px;
+    justify-content: start;
+    align-items: start;
 }
 
 .bcs-form-grid label,
@@ -743,6 +745,34 @@ select {
     display: flex;
     gap: 12px;
     align-items: center;
+}
+
+.bcs-date-field {
+    order: 1;
+    margin-bottom: 18px;
+    cursor: pointer;
+}
+
+.bcs-date-field input[type="date"] {
+    height: 54px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.bcs-meal-types {
+    order: 2;
+    min-width: 0;
+}
+
+.bcs-form-grid .bcs-meal-field-label {
+    margin-bottom: 10px;
+    color: var(--bcs-muted);
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.bcs-meal-form .bcs-form-grid__actions {
+    order: 3;
 }
 
 .bcs-link-btn {
@@ -928,6 +958,56 @@ select {
     line-height: 1.25;
 }
 
+.bcs-meal-options {
+    display: grid;
+    gap: 12px;
+}
+
+.bcs-meal-option {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(180px, 220px);
+    gap: 14px;
+    align-items: center;
+}
+
+.bcs-meal-option-label {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 54px;
+    padding: 14px 18px;
+    border: 1px solid var(--bcs-border);
+    border-radius: 8px;
+    background: var(--bcs-input);
+    cursor: pointer;
+}
+
+.bcs-meal-option-label input {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.bcs-meal-option-label span {
+    min-width: 0;
+    margin: 0;
+    color: var(--bcs-text);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.bcs-form-grid input.bcs-meal-quantity {
+    width: 100%;
+    min-height: 54px;
+    height: 54px;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
 .bcs-feedback-actions {
     display: flex;
     gap: 12px;
@@ -986,7 +1066,7 @@ select {
     }
 
     .bcs-meal-form {
-        grid-template-columns: minmax(170px, 220px) minmax(360px, 1fr) minmax(96px, 130px);
+        grid-template-columns: minmax(240px, 320px) minmax(420px, 1fr);
     }
 
     .bcs-room-grid {
@@ -1053,6 +1133,18 @@ select {
 
     .bcs-feedback-rating__options {
         grid-template-columns: 1fr;
+    }
+
+    .bcs-meal-form {
+        grid-template-columns: 1fr;
+    }
+
+    .bcs-meal-option {
+        grid-template-columns: 1fr;
+    }
+
+    .bcs-form-grid input.bcs-meal-quantity {
+        width: 100%;
     }
 
     .bcs-page__header h1 {

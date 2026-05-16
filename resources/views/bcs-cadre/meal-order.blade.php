@@ -7,6 +7,7 @@
         $minimumOrderDate = now()->addDay()->toDateString();
         $mealTypeOptions = ['breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'dinner' => 'Dinner'];
         $selectedMealTypes = old('meal_types', $editingOrder ? [$editingOrder->meal_type] : []);
+        $mealQuantities = old('quantities', []);
     @endphp
 
     <div class="bcs-page">
@@ -24,31 +25,46 @@
                 @if ($editingOrder)
                     @method('put')
                 @endif
-                <label>
-                    <span>{{ __('Date') }} <em>*</em></span>
-                    <input type="date" name="order_date" value="{{ old('order_date', optional($editingOrder?->order_date)->toDateString() ?? $minimumOrderDate) }}" min="{{ $minimumOrderDate }}" required>
-                </label>
-                <label class="bcs-form-grid__wide">
-                    <span>{{ __('Meal Type') }} <em>*</em></span>
-                    <div class="bcs-checkbox-grid">
+                <div class="bcs-meal-types">
+                    <label class="bcs-date-field" data-bcs-date-field tabindex="0">
+                        <span class="bcs-meal-field-label">{{ __('Date') }} <em>*</em></span>
+                        <input data-bcs-date-input type="date" name="order_date" value="{{ old('order_date', optional($editingOrder?->order_date)->toDateString() ?? $minimumOrderDate) }}" min="{{ $minimumOrderDate }}" required>
+                    </label>
+                    <span class="bcs-meal-field-label">{{ __('Meal Type') }} <em>*</em></span>
+                    <div class="bcs-meal-options">
                         @foreach ($mealTypeOptions as $value => $label)
-                            <label class="bcs-checkbox">
+                            @php
+                                $quantityValue = $mealQuantities[$value]
+                                    ?? ($editingOrder?->meal_type === $value ? $editingOrder->quantity : 1);
+                            @endphp
+                            <div class="bcs-meal-option">
+                                <label class="bcs-meal-option-label">
+                                    <input
+                                        type="checkbox"
+                                        name="meal_types[]"
+                                        value="{{ $value }}"
+                                        @checked(in_array($value, $selectedMealTypes, true))
+                                    >
+                                    <span>{{ __($label) }}</span>
+                                </label>
                                 <input
-                                    type="checkbox"
-                                    name="meal_types[]"
-                                    value="{{ $value }}"
-                                    @checked(in_array($value, $selectedMealTypes, true))
+                                    type="number"
+                                    name="quantities[{{ $value }}]"
+                                    value="{{ $quantityValue }}"
+                                    min="1"
+                                    max="20"
+                                    placeholder="{{ __('Quantity') }}"
+                                    aria-label="{{ __($label) }} {{ __('quantity') }}"
+                                    class="bcs-meal-quantity"
                                 >
-                                <span>{{ __($label) }}</span>
-                            </label>
+                            </div>
                         @endforeach
                     </div>
                     @error('meal_types') <span class="bcs-error">{{ $message }}</span> @enderror
-                </label>
-                <label>
-                    <span>{{ __('Qty') }}</span>
-                    <input type="number" name="quantity" value="{{ old('quantity', $editingOrder?->quantity ?? 1) }}" min="1" max="20" required>
-                </label>
+                    @foreach (array_keys($mealTypeOptions) as $value)
+                        @error("quantities.$value") <span class="bcs-error">{{ $message }}</span> @enderror
+                    @endforeach
+                </div>
                 <div class="bcs-form-grid__actions">
                     <button type="submit" class="bcs-action-btn bcs-action-btn--compact">
                         <span aria-hidden="true">+</span>

@@ -15,11 +15,22 @@ class MealOrderRequest extends FormRequest
 
     public function rules(): array
     {
+        $submittedMealTypes = $this->input('meal_types', []);
+        $submittedMealTypes = is_array($submittedMealTypes) ? $submittedMealTypes : [];
+
+        $mealTypes = array_values(array_unique(array_filter(
+            $submittedMealTypes,
+            fn ($mealType): bool => is_string($mealType)
+        )));
+
         return [
             'order_date' => ['required', 'date', 'after:today'],
             'meal_types' => ['required', 'array', 'min:1'],
             'meal_types.*' => ['required', Rule::in(['breakfast', 'lunch', 'dinner'])],
-            'quantity' => ['required', 'integer', 'min:1', 'max:20'],
+            'quantities' => ['required', 'array'],
+            'quantities.breakfast' => [in_array('breakfast', $mealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:20'],
+            'quantities.lunch' => [in_array('lunch', $mealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:20'],
+            'quantities.dinner' => [in_array('dinner', $mealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:20'],
         ];
     }
 }
