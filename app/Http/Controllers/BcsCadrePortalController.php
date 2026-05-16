@@ -8,12 +8,14 @@ use App\Models\Booking;
 use App\Models\Feedback;
 use App\Models\MealOrder;
 use App\Models\MenuItem;
+use App\Models\Payment;
 use App\Models\Room;
 use App\Models\User;
 use App\Services\RoomAvailabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -48,23 +50,55 @@ class BcsCadrePortalController extends Controller
             return $redirect;
         }
 
-        $room = Room::query()
-            ->where('status', '!=', 'maintenance')
-            ->findOrFail($request->integer('room'));
-
         $portalUser = $this->currentPortalUser($request);
         abort_if(! $portalUser, 403, 'Authenticated portal user was not found.');
+
+        $checkInDate = old('check_in_date', $this->queryString($request, 'check_in'));
+        $checkOutDate = old('check_out_date', $this->queryString($request, 'check_out'));
+        $selectedRoomId = (int) old('room_id', $request->integer('room'));
+        $selectedRoom = $selectedRoomId
+            ? Room::query()
+                ->where('status', '!=', 'maintenance')
+                ->find($selectedRoomId)
+            : null;
+        $availableRooms = $this->hasValidDateRange($checkInDate, $checkOutDate)
+            ? $this->roomAvailability->roomsWithAvailableBeds($checkInDate, $checkOutDate)
+            : collect();
+        $room = $selectedRoom ?: null;
+        $selectedRoomAvailable = $room
+            && $this->hasValidDateRange($checkInDate, $checkOutDate)
+            && $availableRooms->contains('id', $room->id);
+        $selectedRoomUnavailable = $room
+            && $this->hasValidDateRange($checkInDate, $checkOutDate)
+            && ! $selectedRoomAvailable;
+        $availableBedSeatCount = $room && $this->hasValidDateRange($checkInDate, $checkOutDate)
+            ? $this->roomAvailability->availableBedSeatCount($room, $checkInDate, $checkOutDate)
+            : null;
+        $numberOfRooms = max(1, (int) old('number_of_rooms', $request->integer('rooms') ?: 1));
+
+        if (is_int($availableBedSeatCount) && $availableBedSeatCount > 0) {
+            $numberOfRooms = min($numberOfRooms, $availableBedSeatCount);
+        }
 
         return view('bcs-cadre.booking-create', [
             'activeMenu' => 'booking',
             'portalRoutePrefix' => $this->portalRoutePrefix($request),
             'room' => $room,
+            'availableRooms' => $availableRooms,
+            'selectedRoomId' => $room?->id,
+            'selectedRoomAvailable' => (bool) $selectedRoomAvailable,
+            'selectedRoomUnavailable' => (bool) $selectedRoomUnavailable,
+            'availableBedSeatCount' => $availableBedSeatCount,
+            'bedSeatOptions' => is_int($availableBedSeatCount) && $availableBedSeatCount > 0 ? range(1, $availableBedSeatCount) : [],
             'cadreUser' => $portalUser,
-            'checkInDate' => old('check_in_date', $this->queryString($request, 'check_in')),
-            'checkOutDate' => old('check_out_date', $this->queryString($request, 'check_out')),
-            'numberOfRooms' => (int) old('number_of_rooms', $request->integer('rooms') ?: 1),
-            'adults' => (int) old('adults', $request->integer('adults') ?: 2),
+            'checkInDate' => $checkInDate,
+            'checkOutDate' => $checkOutDate,
+            'numberOfRooms' => $numberOfRooms,
+            'ref' => old('ref'),
             'notes' => old('notes'),
+            'paymentGuestName' => old('payment_guest_name', $portalUser->name),
+            'paymentAmount' => old('payment_amount'),
+            'paymentMethod' => old('payment_method'),
             'successReference' => session('booking_success_reference'),
         ]);
     }
@@ -99,6 +133,8 @@ class BcsCadrePortalController extends Controller
         $portalUser = $this->currentPortalUser($request);
         abort_if(! $portalUser, 403, 'Authenticated portal user was not found.');
 
+        $requiresPayment = $request->input('return_to') !== 'room_detail';
+
         $validated = $request->validate([
             'room_id' => [
                 'required',
@@ -107,15 +143,26 @@ class BcsCadrePortalController extends Controller
             'check_in_date' => ['required', 'date'],
             'check_out_date' => ['required', 'date', 'after:check_in_date'],
             'number_of_rooms' => ['required', 'integer', 'min:1', 'max:100'],
-            'adults' => ['required', 'integer', 'min:1', 'max:20'],
+            'ref' => ['nullable', 'string', 'max:50', 'unique:bookings,ref'],
+            'adults' => ['nullable', 'integer', 'min:1', 'max:20'],
             'notes' => ['nullable', 'string'],
+            'payment_guest_name' => [$requiresPayment ? 'required' : 'nullable', 'string', 'max:255'],
+            'payment_method' => [$requiresPayment ? 'required' : 'nullable', Rule::in(['Card', 'Mobile Banking'])],
         ]);
 
         $room = Room::query()->findOrFail($validated['room_id']);
 
-        if (! $this->roomAvailability->roomIsAvailable($room, $validated['check_in_date'], $validated['check_out_date'])) {
+        $availableBedSeatCount = $this->roomAvailability->availableBedSeatCount($room, $validated['check_in_date'], $validated['check_out_date']);
+
+        if ($availableBedSeatCount < 1) {
             return back()
                 ->withErrors(['check_in_date' => __('This room is not available for the selected dates.')])
+                ->withInput();
+        }
+
+        if ((int) $validated['number_of_rooms'] > $availableBedSeatCount) {
+            return back()
+                ->withErrors(['number_of_rooms' => __('The selected bed/seat count exceeds availability.')])
                 ->withInput();
         }
 
@@ -125,25 +172,49 @@ class BcsCadrePortalController extends Controller
             $validated['check_out_date'],
             (int) $validated['number_of_rooms'],
         );
+        $minimumPayment = round((float) $calculation['total_rent'] * 0.20, 2);
 
-        $booking = Booking::query()->create([
-            'user_id' => $portalUser->id,
-            'room_id' => $room->id,
-            'room_type' => $room->room_type,
-            'number_of_rooms' => $validated['number_of_rooms'],
-            'check_in_date' => $validated['check_in_date'],
-            'check_out_date' => $validated['check_out_date'],
-            'notes' => $validated['notes'] ?? null,
-            'duration_nights' => $calculation['duration_nights'],
-            'rent_multiplier' => $calculation['rent_multiplier'],
-            'base_rate' => $calculation['base_rate'],
-            'calculated_rent' => $calculation['calculated_rent'],
-            'booking_money' => $calculation['booking_money'],
-            'total_rent' => $calculation['total_rent'],
-            'status' => 'pending',
-        ]);
+        $payment = $requiresPayment
+            ? $request->validate(['payment_amount' => ['required', 'numeric', 'min:'.$minimumPayment]])
+            : null;
 
-        $this->roomAvailability->blockBooking($booking);
+        $booking = DB::transaction(function () use ($portalUser, $room, $validated, $calculation, $payment, $requiresPayment): Booking {
+            $booking = Booking::query()->create([
+                'ref' => $validated['ref'] ?? null,
+                'user_id' => $portalUser->id,
+                'room_id' => $room->id,
+                'room_type' => $room->room_type,
+                'number_of_rooms' => $validated['number_of_rooms'],
+                'check_in_date' => $validated['check_in_date'],
+                'check_out_date' => $validated['check_out_date'],
+                'notes' => $validated['notes'] ?? null,
+                'duration_nights' => $calculation['duration_nights'],
+                'rent_multiplier' => $calculation['rent_multiplier'],
+                'base_rate' => $calculation['base_rate'],
+                'calculated_rent' => $calculation['calculated_rent'],
+                'booking_money' => $calculation['booking_money'],
+                'total_rent' => $calculation['total_rent'],
+                'status' => 'pending',
+            ]);
+
+            $this->roomAvailability->blockBooking($booking);
+
+            if ($requiresPayment && is_array($payment)) {
+                Payment::query()->create([
+                    'ref' => $this->uniquePaymentReference(),
+                    'booking_id' => $booking->id,
+                    'guest_id' => $booking->user_id,
+                    'amount' => $payment['payment_amount'],
+                    'type' => 'booking_money',
+                    'gateway' => $validated['payment_method'],
+                    'transaction_id' => $this->uniquePaymentTransactionId(),
+                    'status' => 'success',
+                    'paid_at' => now(),
+                ]);
+            }
+
+            return $booking;
+        });
 
         $successReference = 'BKG-'.str_pad((string) $booking->id, 4, '0', STR_PAD_LEFT);
 
@@ -153,7 +224,7 @@ class BcsCadrePortalController extends Controller
                     'room' => $room->id,
                     'check_in' => $validated['check_in_date'],
                     'check_out' => $validated['check_out_date'],
-                    'adults' => $validated['adults'],
+                    'adults' => $validated['adults'] ?? 1,
                 ])
                 ->with('booking_success_reference', $successReference);
         }
@@ -163,7 +234,6 @@ class BcsCadrePortalController extends Controller
                 'room' => $room->id,
                 'check_in' => $validated['check_in_date'],
                 'check_out' => $validated['check_out_date'],
-                'adults' => $validated['adults'],
                 'rooms' => $validated['number_of_rooms'],
             ])
             ->with('booking_success_reference', $successReference);
@@ -552,6 +622,38 @@ class BcsCadrePortalController extends Controller
             'booking_money' => $bookingMoney,
             'total_rent' => $calculatedRent,
         ];
+    }
+
+    private function hasValidDateRange(?string $checkInDate, ?string $checkOutDate): bool
+    {
+        if (! $checkInDate || ! $checkOutDate) {
+            return false;
+        }
+
+        try {
+            return Carbon::parse($checkOutDate)->startOfDay()
+                ->greaterThan(Carbon::parse($checkInDate)->startOfDay());
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    private function uniquePaymentReference(): string
+    {
+        do {
+            $ref = 'PAY-'.random_int(10000, 99999);
+        } while (Payment::query()->where('ref', $ref)->exists());
+
+        return $ref;
+    }
+
+    private function uniquePaymentTransactionId(): string
+    {
+        do {
+            $transactionId = 'TXN-'.random_int(100000, 999999);
+        } while (Payment::query()->where('transaction_id', $transactionId)->exists());
+
+        return $transactionId;
     }
 
     private function editableMealOrder(Request $request): ?MealOrder

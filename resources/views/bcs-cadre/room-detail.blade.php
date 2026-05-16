@@ -72,28 +72,32 @@
                 <div class="bcs-room-detail-divider"></div>
 
                 <form
-                    method="post"
-                    action="{{ route($portalRoutePrefix.'.bookings.store') }}"
+                    method="{{ $portalRoutePrefix === 'cadre' ? 'get' : 'post' }}"
+                    action="{{ $portalRoutePrefix === 'cadre' ? route($portalRoutePrefix.'.bookings.new') : route($portalRoutePrefix.'.bookings.store') }}"
                     class="bcs-room-booking"
                     data-room-price="{{ $baseRate }}"
                 >
-                    @csrf
-                    <input type="hidden" name="room_id" value="{{ $room->id }}">
+                    @if ($portalRoutePrefix !== 'cadre')
+                        @csrf
+                    @endif
+                    <input type="hidden" name="{{ $portalRoutePrefix === 'cadre' ? 'room' : 'room_id' }}" value="{{ $room->id }}">
                     <input type="hidden" name="adults" value="{{ $adults }}">
-                    <input type="hidden" name="number_of_rooms" value="{{ $numberOfRooms }}">
-                    <input type="hidden" name="return_to" value="room_detail">
+                    <input type="hidden" name="{{ $portalRoutePrefix === 'cadre' ? 'rooms' : 'number_of_rooms' }}" value="{{ $numberOfRooms }}">
+                    @if ($portalRoutePrefix !== 'cadre')
+                        <input type="hidden" name="return_to" value="room_detail">
+                    @endif
 
                     <h2>{{ __('Book this room') }}</h2>
 
                     <div class="bcs-room-booking-grid">
                         <label data-bcs-date-field tabindex="0">
                             <span>{{ __('Check-in') }}</span>
-                            <input data-bcs-date-input data-room-check-in type="date" name="check_in_date" value="{{ $checkInDate }}" required>
+                            <input data-bcs-date-input data-room-check-in type="date" name="{{ $portalRoutePrefix === 'cadre' ? 'check_in' : 'check_in_date' }}" value="{{ $checkInDate }}" required>
                         </label>
 
                         <label data-bcs-date-field tabindex="0">
                             <span>{{ __('Check-out') }}</span>
-                            <input data-bcs-date-input data-room-check-out type="date" name="check_out_date" value="{{ $checkOutDate }}" required>
+                            <input data-bcs-date-input data-room-check-out type="date" name="{{ $portalRoutePrefix === 'cadre' ? 'check_out' : 'check_out_date' }}" value="{{ $checkOutDate }}" required>
                         </label>
                     </div>
 
