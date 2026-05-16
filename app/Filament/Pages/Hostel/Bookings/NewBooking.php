@@ -4,12 +4,14 @@ namespace App\Filament\Pages\Hostel\Bookings;
 
 use App\Filament\Pages\Hostel\BaseHostelPage;
 use App\Models\Booking;
+use App\Models\Payment;
 use App\Models\Room;
 use App\Models\User;
 use App\Services\RoomAvailabilityService;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -56,6 +58,14 @@ class NewBooking extends BaseHostelPage
     public bool $showSuccessModal = false;
 
     public ?string $successReference = null;
+
+    public bool $showPaymentModal = false;
+
+    public ?string $paymentGuestName = null;
+
+    public ?string $paymentAmount = null;
+
+    public ?string $paymentMethod = null;
 
     public function mount(): void
     {
@@ -180,47 +190,10 @@ class NewBooking extends BaseHostelPage
 
     public function save(): void
     {
-        $guestRules = ['required', 'exists:users,id'];
-
-        if ($this->cadreFlow) {
-            $guestRules[] = Rule::in([(string) $this->cadreUserId]);
-        }
-
-        $validated = $this->validate([
-            'selectedGuestId' => $guestRules,
-            'ref' => ['nullable', 'string', 'max:50', 'unique:bookings,ref'],
-            'selectedRoomId' => ['required', 'exists:rooms,id'],
-            'checkInDate' => ['required', 'date'],
-            'checkOutDate' => ['required', 'date', 'after:checkInDate'],
-            'numberOfRooms' => ['required', 'integer', 'min:1'],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        if ($this->cadreFlow && (int) $validated['selectedGuestId'] !== $this->cadreUserId) {
-            throw new HttpException(403, 'Cadre booking guest mismatch.');
-        }
-
+        $validated = $this->validatedBookingData();
         $room = Room::query()->findOrFail($validated['selectedRoomId']);
-        $availableRoomIds = $this->getAvailableRoomsProperty()->pluck('id')->all();
 
-        if (! in_array($room->id, $availableRoomIds, true)) {
-            $this->addError('selectedRoomId', 'Please select an available room for the selected dates.');
-
-            return;
-        }
-
-        $roomAvailability = app(RoomAvailabilityService::class);
-        $availableBedSeatCount = $roomAvailability->availableBedSeatCount($room, $validated['checkInDate'], $validated['checkOutDate']);
-
-        if ($availableBedSeatCount < 1) {
-            $this->addError('checkInDate', 'This room is not available for the selected dates.');
-
-            return;
-        }
-
-        if ((int) $validated['numberOfRooms'] > $availableBedSeatCount) {
-            $this->addError('numberOfRooms', 'The selected bed/seat count exceeds availability.');
-
+        if (! $this->ensureRoomAndBedSeatAvailability($room, $validated)) {
             return;
         }
 
@@ -231,39 +204,134 @@ class NewBooking extends BaseHostelPage
             (int) $validated['numberOfRooms'],
         );
 
-        $booking = Booking::query()->create([
-            'ref' => $validated['ref'] ?? null,
-            'user_id' => $validated['selectedGuestId'],
-            'room_id' => $room->id,
-            'room_type' => $room->room_type,
-            'number_of_rooms' => $validated['numberOfRooms'],
-            'check_in_date' => $validated['checkInDate'],
-            'check_out_date' => $validated['checkOutDate'],
-            'notes' => $validated['notes'] ?? null,
-            'duration_nights' => $calculation['duration_nights'],
-            'rent_multiplier' => $calculation['rent_multiplier'],
-            'base_rate' => $calculation['base_rate'],
-            'calculated_rent' => $calculation['calculated_rent'],
-            'booking_money' => $calculation['booking_money'],
-            'total_rent' => $calculation['total_rent'],
-            'status' => 'pending',
-        ]);
+        $this->paymentGuestName = User::query()->whereKey($validated['selectedGuestId'])->value('name');
+        $this->paymentAmount = number_format((float) $calculation['booking_money'], 2, '.', '');
+        $this->paymentMethod = null;
+        $this->showPaymentModal = true;
+    }
 
-        $roomAvailability->blockBooking($booking);
+    public function cancelPayment(): void
+    {
+        $this->showPaymentModal = false;
+        $this->resetValidation(['paymentGuestName', 'paymentAmount', 'paymentMethod']);
+    }
 
-        if ($this->cadreFlow) {
-            $this->successReference = 'BKG-'.str_pad((string) $booking->id, 4, '0', STR_PAD_LEFT);
-            $this->showSuccessModal = true;
+    public function pay(): void
+    {
+        $validated = $this->validatedBookingData();
+        $room = Room::query()->findOrFail($validated['selectedRoomId']);
+
+        if (! $this->ensureRoomAndBedSeatAvailability($room, $validated)) {
+            $this->showPaymentModal = false;
 
             return;
         }
 
+        $calculation = $this->calculateRent(
+            $room,
+            $validated['checkInDate'],
+            $validated['checkOutDate'],
+            (int) $validated['numberOfRooms'],
+        );
+        $minimumPayment = round((float) $calculation['total_rent'] * 0.20, 2);
+
+        $payment = $this->validate([
+            'paymentGuestName' => ['required', 'string', 'max:255'],
+            'paymentAmount' => ['required', 'numeric', 'min:'.$minimumPayment],
+            'paymentMethod' => ['required', Rule::in(['Card', 'Mobile Banking'])],
+        ]);
+
+        DB::transaction(function () use ($validated, $room, $calculation, $payment): void {
+            $booking = Booking::query()->create([
+                'ref' => $validated['ref'] ?? null,
+                'user_id' => $validated['selectedGuestId'],
+                'room_id' => $room->id,
+                'room_type' => $room->room_type,
+                'number_of_rooms' => $validated['numberOfRooms'],
+                'check_in_date' => $validated['checkInDate'],
+                'check_out_date' => $validated['checkOutDate'],
+                'notes' => $validated['notes'] ?? null,
+                'duration_nights' => $calculation['duration_nights'],
+                'rent_multiplier' => $calculation['rent_multiplier'],
+                'base_rate' => $calculation['base_rate'],
+                'calculated_rent' => $calculation['calculated_rent'],
+                'booking_money' => $calculation['booking_money'],
+                'total_rent' => $calculation['total_rent'],
+                'status' => 'pending',
+            ]);
+
+            app(RoomAvailabilityService::class)->blockBooking($booking);
+
+            Payment::query()->create([
+                'ref' => $this->uniquePaymentReference(),
+                'booking_id' => $booking->id,
+                'guest_id' => $booking->user_id,
+                'amount' => $payment['paymentAmount'],
+                'type' => 'booking_money',
+                'gateway' => $payment['paymentMethod'],
+                'transaction_id' => $this->uniquePaymentTransactionId(),
+                'status' => 'success',
+                'paid_at' => now(),
+            ]);
+        });
+
         Notification::make()
-            ->title('Booking created successfully')
+            ->title('Booking created and payment recorded successfully.')
             ->success()
             ->send();
 
         $this->redirect(AllBookings::getUrl(panel: 'admin'));
+    }
+
+    private function validatedBookingData(): array
+    {
+        $guestRules = ['required', 'exists:users,id'];
+
+        if ($this->cadreFlow) {
+            $guestRules[] = Rule::in([(string) $this->cadreUserId]);
+        }
+
+        return $this->validate([
+            'selectedGuestId' => $guestRules,
+            'ref' => ['nullable', 'string', 'max:50', 'unique:bookings,ref'],
+            'selectedRoomId' => ['required', 'exists:rooms,id'],
+            'checkInDate' => ['required', 'date'],
+            'checkOutDate' => ['required', 'date', 'after:checkInDate'],
+            'numberOfRooms' => ['required', 'integer', 'min:1'],
+            'notes' => ['nullable', 'string'],
+        ]);
+    }
+
+    private function ensureRoomAndBedSeatAvailability(Room $room, array $validated): bool
+    {
+        if ($this->cadreFlow && (int) $validated['selectedGuestId'] !== $this->cadreUserId) {
+            throw new HttpException(403, 'Cadre booking guest mismatch.');
+        }
+
+        $availableRoomIds = $this->getAvailableRoomsProperty()->pluck('id')->all();
+
+        if (! in_array($room->id, $availableRoomIds, true)) {
+            $this->addError('selectedRoomId', 'Please select an available room for the selected dates.');
+
+            return false;
+        }
+
+        $roomAvailability = app(RoomAvailabilityService::class);
+        $availableBedSeatCount = $roomAvailability->availableBedSeatCount($room, $validated['checkInDate'], $validated['checkOutDate']);
+
+        if ($availableBedSeatCount < 1) {
+            $this->addError('checkInDate', 'This room is not available for the selected dates.');
+
+            return false;
+        }
+
+        if ((int) $validated['numberOfRooms'] > $availableBedSeatCount) {
+            $this->addError('numberOfRooms', 'The selected bed/seat count exceeds availability.');
+
+            return false;
+        }
+
+        return true;
     }
 
     public function bookAnother(): void
@@ -316,6 +384,24 @@ class NewBooking extends BaseHostelPage
             'booking_money' => $bookingMoney,
             'total_rent' => $calculatedRent,
         ];
+    }
+
+    private function uniquePaymentReference(): string
+    {
+        do {
+            $ref = 'PAY-'.random_int(10000, 99999);
+        } while (Payment::query()->where('ref', $ref)->exists());
+
+        return $ref;
+    }
+
+    private function uniquePaymentTransactionId(): string
+    {
+        do {
+            $transactionId = 'TXN-'.random_int(100000, 999999);
+        } while (Payment::query()->where('transaction_id', $transactionId)->exists());
+
+        return $transactionId;
     }
 
     private function clampBedSeatSelection(): void

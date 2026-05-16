@@ -183,6 +183,45 @@
             gap: 10px;
         }
 
+        .booking-payment-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(15, 23, 42, 0.58);
+        }
+
+        .booking-payment-panel {
+            width: min(520px, 100%);
+            border: 1px solid #d6dde6;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 28px 26px 24px;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.24);
+        }
+
+        .booking-payment-title {
+            margin: 0 0 18px;
+            color: #1f2937;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .booking-payment-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .booking-payment-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
         @media (max-width: 767px) {
             .booking-form-card {
                 padding: 24px 18px;
@@ -214,6 +253,14 @@
 
             .booking-success-actions {
                 grid-template-columns: 1fr;
+            }
+
+            .booking-payment-panel {
+                padding: 24px 18px;
+            }
+
+            .booking-payment-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -377,6 +424,48 @@
                         <button type="button" wire:click="done" class="booking-primary">Done</button>
                     </div>
                 </div>
+            </div>
+        @endif
+
+        @if ($showPaymentModal)
+            @php
+                $minimumPayment = $this->calculation ? round((float) $this->calculation['total_rent'] * 0.20, 2) : 0;
+            @endphp
+
+            <div class="booking-payment-modal" role="dialog" aria-modal="true" aria-labelledby="booking-payment-title">
+                <form wire:submit="pay" class="booking-payment-panel dark:border-gray-800 dark:bg-gray-900">
+                    <h2 class="booking-payment-title dark:text-white" id="booking-payment-title">Payment</h2>
+
+                    <div class="booking-payment-grid">
+                        <label class="booking-field">
+                            <span>Guest Name <span class="booking-required">*</span></span>
+                            <input wire:model.live="paymentGuestName" type="text" class="booking-control" readonly>
+                            @error('paymentGuestName') <span class="booking-error">{{ $message }}</span> @enderror
+                        </label>
+
+                        <label class="booking-field">
+                            <span>Amount <span class="booking-required">*</span></span>
+                            <input wire:model.live="paymentAmount" type="number" min="{{ $minimumPayment }}" step="0.01" class="booking-control">
+                            <span class="booking-note">Minimum payment is 20% of total amount</span>
+                            @error('paymentAmount') <span class="booking-error">{{ $message }}</span> @enderror
+                        </label>
+
+                        <label class="booking-field">
+                            <span>Payment Method <span class="booking-required">*</span></span>
+                            <select wire:model.live="paymentMethod" class="booking-control">
+                                <option value="">Select payment method...</option>
+                                <option value="Card">Card</option>
+                                <option value="Mobile Banking">Mobile Banking</option>
+                            </select>
+                            @error('paymentMethod') <span class="booking-error">{{ $message }}</span> @enderror
+                        </label>
+                    </div>
+
+                    <div class="booking-payment-actions">
+                        <button type="button" wire:click="cancelPayment" class="booking-cancel">Cancel</button>
+                        <button type="submit" class="booking-primary">Pay</button>
+                    </div>
+                </form>
             </div>
         @endif
     </div>
