@@ -46,30 +46,55 @@
             box-shadow: 0 0 0 1px #111827;
         }
 
+        .meal-date-field {
+            cursor: pointer;
+        }
+
+        .meal-date-field .meal-control {
+            cursor: pointer;
+        }
+
         .meal-checkbox-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: 1fr;
             gap: 12px;
         }
 
         .meal-checkbox {
-            display: flex;
+            display: grid;
+            grid-template-columns: auto minmax(120px, 1fr) minmax(160px, 192px);
             align-items: center;
-            gap: 10px;
-            min-height: 52px;
+            gap: 16px;
             border: 1px solid #cbd5e1;
             border-radius: 10px;
             background: #f8fafc;
-            padding: 10px 16px;
+            padding: 14px 16px;
             color: #001b33;
             font-size: 16px;
             font-weight: 500;
         }
 
-        .meal-checkbox input {
+        .meal-checkbox input[type="checkbox"] {
             width: 18px;
             height: 18px;
             border-radius: 4px;
+        }
+
+        .meal-qty {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: #ffffff;
+            padding: 10px 16px;
+            color: #001b33;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .meal-qty:focus {
+            border-color: #111827;
+            box-shadow: 0 0 0 1px #111827;
         }
 
         .meal-error {
@@ -124,6 +149,16 @@
                 grid-template-columns: 1fr;
             }
 
+            .meal-checkbox {
+                grid-template-columns: auto minmax(0, 1fr);
+                gap: 12px 14px;
+            }
+
+            .meal-qty {
+                grid-column: 1 / -1;
+                width: 100%;
+            }
+
             .meal-primary,
             .meal-cancel {
                 width: 100%;
@@ -148,38 +183,45 @@
                     @error('guestId') <span class="meal-error">{{ $message }}</span> @enderror
                 </label>
 
-                <label class="meal-field">
+                <label
+                    class="meal-field meal-date-field"
+                    x-data
+                    x-on:click="$refs.dateInput?.showPicker ? $refs.dateInput.showPicker() : $refs.dateInput?.focus()"
+                    x-on:keydown.enter.prevent="$refs.dateInput?.showPicker ? $refs.dateInput.showPicker() : $refs.dateInput?.focus()"
+                    x-on:keydown.space.prevent="$refs.dateInput?.showPicker ? $refs.dateInput.showPicker() : $refs.dateInput?.focus()"
+                    tabindex="0"
+                >
                     <span>Date</span>
-                    <input wire:model.live="date" type="date" min="{{ $this->tomorrowDate() }}" class="meal-control" required>
+                    <input x-ref="dateInput" wire:model.live="date" type="date" min="{{ $this->tomorrowDate() }}" class="meal-control" required>
                     @error('date') <span class="meal-error">{{ $message }}</span> @enderror
                 </label>
             </div>
 
-            <label class="meal-field">
+            <div class="meal-field">
                 <span>Meal Type</span>
                 <div class="meal-checkbox-grid">
-                    <label class="meal-checkbox">
-                        <input wire:model.live="mealTypes" type="checkbox" value="breakfast">
-                        <span>Breakfast</span>
-                    </label>
-                    <label class="meal-checkbox">
-                        <input wire:model.live="mealTypes" type="checkbox" value="lunch">
-                        <span>Lunch</span>
-                    </label>
-                    <label class="meal-checkbox">
-                        <input wire:model.live="mealTypes" type="checkbox" value="supper">
-                        <span>Supper</span>
-                    </label>
+                    <div class="meal-checkbox">
+                        <input id="meal-breakfast" wire:model.live="mealTypes" type="checkbox" value="breakfast">
+                        <label for="meal-breakfast">Breakfast</label>
+                        <input wire:model.live="mealQuantities.breakfast" type="number" min="1" max="100" placeholder="Quantity" class="meal-qty" aria-label="Breakfast quantity">
+                    </div>
+                    <div class="meal-checkbox">
+                        <input id="meal-lunch" wire:model.live="mealTypes" type="checkbox" value="lunch">
+                        <label for="meal-lunch">Lunch</label>
+                        <input wire:model.live="mealQuantities.lunch" type="number" min="1" max="100" placeholder="Quantity" class="meal-qty" aria-label="Lunch quantity">
+                    </div>
+                    <div class="meal-checkbox">
+                        <input id="meal-dinner" wire:model.live="mealTypes" type="checkbox" value="dinner">
+                        <label for="meal-dinner">Dinner</label>
+                        <input wire:model.live="mealQuantities.dinner" type="number" min="1" max="100" placeholder="Quantity" class="meal-qty" aria-label="Dinner quantity">
+                    </div>
                 </div>
                 @error('mealTypes') <span class="meal-error">{{ $message }}</span> @enderror
                 @error('mealTypes.*') <span class="meal-error">{{ $message }}</span> @enderror
-            </label>
-
-            <label class="meal-field">
-                <span>Quantity</span>
-                <input wire:model.live="quantity" type="number" min="1" class="meal-control">
-                @error('quantity') <span class="meal-error">{{ $message }}</span> @enderror
-            </label>
+                @error('mealQuantities.breakfast') <span class="meal-error">{{ $message }}</span> @enderror
+                @error('mealQuantities.lunch') <span class="meal-error">{{ $message }}</span> @enderror
+                @error('mealQuantities.dinner') <span class="meal-error">{{ $message }}</span> @enderror
+            </div>
 
             <div class="meal-actions">
                 <button type="submit" class="meal-primary">Create Order</button>

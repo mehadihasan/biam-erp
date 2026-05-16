@@ -457,7 +457,7 @@ class BcsCadrePortalController extends Controller
         return match ($mealType) {
             'breakfast' => 50,
             'lunch' => 100,
-            'supper' => 70,
+            'dinner' => 70,
             default => 0,
         };
     }
@@ -467,7 +467,7 @@ class BcsCadrePortalController extends Controller
         return match ($mealType) {
             'breakfast' => 'Breakfast',
             'lunch' => 'Lunch',
-            'supper' => 'Supper',
+            'dinner' => 'Dinner',
             default => Str::headline($mealType),
         };
     }

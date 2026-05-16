@@ -5,7 +5,7 @@
 @section('content')
     @php
         $minimumOrderDate = now()->addDay()->toDateString();
-        $mealTypeOptions = ['breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'supper' => 'Supper'];
+        $mealTypeOptions = ['breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'dinner' => 'Dinner'];
         $selectedMealTypes = old('meal_types', $editingOrder ? [$editingOrder->meal_type] : []);
     @endphp
 

@@ -18,7 +18,7 @@ class MealOrderRequest extends FormRequest
         return [
             'order_date' => ['required', 'date', 'after:today'],
             'meal_types' => ['required', 'array', 'min:1'],
-            'meal_types.*' => ['required', Rule::in(['breakfast', 'lunch', 'supper'])],
+            'meal_types.*' => ['required', Rule::in(['breakfast', 'lunch', 'dinner'])],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
         ];
     }

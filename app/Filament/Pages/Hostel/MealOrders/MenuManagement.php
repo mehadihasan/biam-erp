@@ -10,9 +10,9 @@ use Illuminate\Validation\Rule;
 
 class MenuManagement extends BaseHostelPage
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-list-bullet';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-list-bullet';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Meal Order';
+    protected static string|\UnitEnum|null $navigationGroup = 'Meal Order';
 
     protected static ?string $title = 'Menu Management';
 
@@ -39,7 +39,7 @@ class MenuManagement extends BaseHostelPage
     public function getMenuItemsProperty(): Collection
     {
         return MenuItem::query()
-            ->orderByRaw("CASE meal_type WHEN 'breakfast' THEN 1 WHEN 'lunch' THEN 2 WHEN 'supper' THEN 3 ELSE 4 END")
+            ->orderByRaw("CASE meal_type WHEN 'breakfast' THEN 1 WHEN 'lunch' THEN 2 WHEN 'dinner' THEN 3 ELSE 4 END")
             ->orderBy('name')
             ->get();
     }
@@ -65,7 +65,7 @@ class MenuManagement extends BaseHostelPage
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'mealType' => ['required', Rule::in(['breakfast', 'lunch', 'supper'])],
+            'mealType' => ['required', Rule::in(['breakfast', 'lunch', 'dinner'])],
             'priceBcs' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'priceGuest' => ['required', 'numeric', 'min:0', 'max:999999.99'],
         ]);

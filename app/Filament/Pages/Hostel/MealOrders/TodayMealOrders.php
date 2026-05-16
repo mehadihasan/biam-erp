@@ -38,7 +38,7 @@ class TodayMealOrders extends BaseHostelPage
         return collect([
             'breakfast' => ['label' => 'Breakfast', 'time' => '7:30-8:30 AM'],
             'lunch' => ['label' => 'Lunch', 'time' => '1:30-2:30 PM'],
-            'supper' => ['label' => 'Supper', 'time' => '8:30-9:30 PM'],
+            'dinner' => ['label' => 'Dinner', 'time' => '8:30-9:30 PM'],
         ])->map(function (array $meta, string $mealType) use ($orders): array {
             $mealOrders = $orders->get($mealType, collect());
 

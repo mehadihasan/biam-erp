@@ -225,7 +225,7 @@
                         <select wire:model.live="mealType" class="meal-modal-control">
                             <option value="breakfast">breakfast</option>
                             <option value="lunch">lunch</option>
-                            <option value="supper">supper</option>
+                            <option value="dinner">dinner</option>
                         </select>
                         @error('mealType') <span class="meal-error">{{ $message }}</span> @enderror
                     </div>

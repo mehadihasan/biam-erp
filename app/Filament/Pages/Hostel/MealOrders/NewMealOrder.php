@@ -38,7 +38,14 @@ class NewMealOrder extends BaseHostelPage
      */
     public array $mealTypes = ['lunch'];
 
-    public int $quantity = 1;
+    /**
+     * @var array<string, int|string|null>
+     */
+    public array $mealQuantities = [
+        'breakfast' => 1,
+        'lunch' => 1,
+        'dinner' => 1,
+    ];
 
     public function mount(): void
     {
@@ -60,6 +67,12 @@ class NewMealOrder extends BaseHostelPage
 
     public function save(): void
     {
+        $selectedMealTypes = array_values(array_unique(array_intersect($this->mealTypes, [
+            'breakfast',
+            'lunch',
+            'dinner',
+        ])));
+
         $validated = $this->validate([
             'guestId' => [
                 'required',
@@ -73,15 +86,18 @@ class NewMealOrder extends BaseHostelPage
             ],
             'date' => ['required', 'date', 'after:today'],
             'mealTypes' => ['required', 'array', 'min:1'],
-            'mealTypes.*' => ['required', Rule::in(['breakfast', 'lunch', 'supper'])],
-            'quantity' => ['required', 'integer', 'min:1', 'max:100'],
+            'mealTypes.*' => ['required', Rule::in(['breakfast', 'lunch', 'dinner'])],
+            'mealQuantities' => ['required', 'array'],
+            'mealQuantities.breakfast' => [in_array('breakfast', $selectedMealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:100'],
+            'mealQuantities.lunch' => [in_array('lunch', $selectedMealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:100'],
+            'mealQuantities.dinner' => [in_array('dinner', $selectedMealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $guest = User::query()->findOrFail($validated['guestId']);
-        $quantity = (int) $validated['quantity'];
 
         foreach (array_values(array_unique($validated['mealTypes'])) as $mealType) {
             $ref = $this->uniqueReference();
+            $quantity = (int) ($validated['mealQuantities'][$mealType] ?? 1);
 
             MealOrder::query()->create([
                 'ref' => $ref,
@@ -91,7 +107,7 @@ class NewMealOrder extends BaseHostelPage
                 'order_date' => $validated['date'],
                 'meal_type' => $mealType,
                 'menu_item_id' => null,
-                'menu_item' => ucfirst($mealType),
+                'menu_item' => Str::headline($mealType),
                 'quantity' => $quantity,
                 'unit_price' => 0,
                 'total_price' => 0,
