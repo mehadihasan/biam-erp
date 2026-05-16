@@ -19,6 +19,7 @@ class FeedbackRequest extends FormRequest
         return [
             'ratings' => ['required', 'array', 'size:'.count(Feedback::CATEGORIES)],
             'ratings.*' => ['required', Rule::in(Feedback::RATINGS)],
+            'comments' => ['nullable', 'string', 'max:2000'],
         ];
     }
 

@@ -311,7 +311,9 @@ class BcsCadrePortalController extends Controller
             'guest_id' => $portalUser->id,
             'cadre_reference' => $this->currentCadreReference($request),
             'submitter_type' => $request->session()->get('guest_verified') === true && $request->session()->get('cadre_auth') !== true ? 'guest' : 'cadre',
-            'options' => [],
+            'options' => [
+                'comments' => $request->validated('comments'),
+            ],
             'status' => 'submitted',
         ]);
 
@@ -323,6 +325,13 @@ class BcsCadrePortalController extends Controller
     public function updateFeedback(FeedbackRequest $request, Feedback $feedback): RedirectResponse
     {
         $this->abortIfUnauthorizedRecord($request, $feedback);
+
+        $feedback->update([
+            'options' => [
+                ...($feedback->options ?? []),
+                'comments' => $request->validated('comments'),
+            ],
+        ]);
 
         $this->syncFeedbackRatings($feedback, $request->validated('ratings'));
 

@@ -5,6 +5,13 @@
 @section('content')
     @php
         $selectedRatings = old('ratings', $editingFeedback?->ratingMap() ?? []);
+        $comments = old('comments', $editingFeedback?->options['comments'] ?? '');
+        $ratingClasses = [
+            'Excellent' => 'bcs-feedback-rating-label--excellent',
+            'Good' => 'bcs-feedback-rating-label--good',
+            'Fair' => 'bcs-feedback-rating-label--fair',
+            'Average' => 'bcs-feedback-rating-label--average',
+        ];
     @endphp
 
     <div class="bcs-page">
@@ -37,7 +44,7 @@
                                             @checked(($selectedRatings[$category] ?? null) === $rating)
                                             required
                                         >
-                                        <span>{{ $rating }}</span>
+                                        <span class="{{ $ratingClasses[$rating] ?? '' }}">{{ $rating }}</span>
                                     </label>
                                 @endforeach
                             </div>
@@ -45,6 +52,12 @@
                     @endforeach
                 </div>
                 @error('ratings') <span class="bcs-error">{{ $message }}</span> @enderror
+
+                <label class="bcs-feedback-comments">
+                    <span>{{ __('Comments') }}</span>
+                    <textarea name="comments" placeholder="{{ __('Write your comments') }}">{{ $comments }}</textarea>
+                    @error('comments') <span class="bcs-error">{{ $message }}</span> @enderror
+                </label>
 
                 <div class="bcs-feedback-actions">
                     <button type="submit" class="bcs-action-btn bcs-action-btn--compact">
@@ -65,6 +78,7 @@
                     <thead>
                         <tr>
                             <th>{{ __('Ratings') }}</th>
+                            <th>{{ __('Comments') }}</th>
                             <th>{{ __('Status') }}</th>
                             <th>{{ __('Date') }}</th>
                             <th>{{ __('Actions') }}</th>
@@ -80,6 +94,7 @@
                                         @endforeach
                                     </div>
                                 </td>
+                                <td class="bcs-feedback-comment-cell">{{ $item->options['comments'] ?? '-' }}</td>
                                 <td><span class="bcs-status">{{ $item->status }}</span></td>
                                 <td>{{ $item->created_at->format('Y-m-d h:i A') }}</td>
                                 <td class="bcs-row-actions">
@@ -93,7 +108,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="bcs-table-empty">{{ __('No feedback yet') }}</td>
+                                <td colspan="5" class="bcs-table-empty">{{ __('No feedback yet') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

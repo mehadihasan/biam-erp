@@ -911,6 +911,41 @@ select {
     font-weight: 600;
 }
 
+.bcs-feedback-rating__options .bcs-feedback-rating-label--excellent {
+    color: #15803d;
+}
+
+.bcs-feedback-rating__options .bcs-feedback-rating-label--good {
+    color: #2563eb;
+}
+
+.bcs-feedback-rating__options .bcs-feedback-rating-label--fair {
+    color: #d97706;
+}
+
+.bcs-feedback-rating__options .bcs-feedback-rating-label--average {
+    color: #64748b;
+}
+
+.bcs-feedback-comments span {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--bcs-muted);
+    font-size: 14px;
+}
+
+.bcs-feedback-comments textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px 15px;
+    border: 1px solid var(--bcs-border);
+    border-radius: 8px;
+    background: var(--bcs-input);
+    color: var(--bcs-text);
+    font: inherit;
+    resize: vertical;
+}
+
 .bcs-feedback-rating-summary {
     display: grid;
     gap: 6px;
@@ -921,6 +956,15 @@ select {
 
 .bcs-feedback-rating-summary span {
     color: var(--bcs-text);
+}
+
+.bcs-feedback-comment-cell {
+    min-width: 220px;
+    max-width: 360px;
+    color: var(--bcs-text);
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .bcs-checkbox-grid {
