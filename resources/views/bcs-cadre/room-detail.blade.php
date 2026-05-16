@@ -86,14 +86,14 @@
                     <h2>{{ __('Book this room') }}</h2>
 
                     <div class="bcs-room-booking-grid">
-                        <label>
+                        <label data-bcs-date-field tabindex="0">
                             <span>{{ __('Check-in') }}</span>
-                            <input data-room-check-in type="date" name="check_in_date" value="{{ $checkInDate }}" required>
+                            <input data-bcs-date-input data-room-check-in type="date" name="check_in_date" value="{{ $checkInDate }}" required>
                         </label>
 
-                        <label>
+                        <label data-bcs-date-field tabindex="0">
                             <span>{{ __('Check-out') }}</span>
-                            <input data-room-check-out type="date" name="check_out_date" value="{{ $checkOutDate }}" required>
+                            <input data-bcs-date-input data-room-check-out type="date" name="check_out_date" value="{{ $checkOutDate }}" required>
                         </label>
                     </div>
 

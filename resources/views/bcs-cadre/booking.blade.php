@@ -10,22 +10,22 @@
         </header>
 
         <form method="get" action="{{ route($portalRoutePrefix.'.booking') }}" class="bcs-search-card" aria-label="{{ __('Booking search') }}">
-            <label class="bcs-search-field">
+            <label class="bcs-search-field" data-bcs-date-field tabindex="0">
                 <span class="bcs-search-field__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M8 14h4M8 18h8"></path></svg>
                 </span>
                 <div class="bcs-search-field__content">
-                    <input type="date" name="check_in" value="{{ $filters['check_in'] }}" aria-label="{{ __('Check-in date') }}">
+                    <input data-bcs-date-input type="date" name="check_in" value="{{ $filters['check_in'] }}" aria-label="{{ __('Check-in date') }}">
                     <span>{{ $filters['check_in'] ? \Illuminate\Support\Carbon::parse($filters['check_in'])->format('l') : __('Check-in date') }}</span>
                 </div>
             </label>
 
-            <label class="bcs-search-field">
+            <label class="bcs-search-field" data-bcs-date-field tabindex="0">
                 <span class="bcs-search-field__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M8 14l2 2 4-4"></path></svg>
                 </span>
                 <div class="bcs-search-field__content">
-                    <input type="date" name="check_out" value="{{ $filters['check_out'] }}" aria-label="{{ __('Check-out date') }}">
+                    <input data-bcs-date-input type="date" name="check_out" value="{{ $filters['check_out'] }}" aria-label="{{ __('Check-out date') }}">
                     <span>{{ $filters['check_out'] ? \Illuminate\Support\Carbon::parse($filters['check_out'])->format('l') : __('Check-out date') }}</span>
                 </div>
             </label>

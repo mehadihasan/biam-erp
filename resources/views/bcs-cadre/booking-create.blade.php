@@ -60,15 +60,15 @@
                     <div class="bcs-readonly">{{ __('Room :number (:type)', ['number' => $room->room_number, 'type' => strtoupper(str_replace('_', '-', $room->room_type))]) }}</div>
                 </label>
 
-                <label>
+                <label data-bcs-date-field tabindex="0">
                     <span>{{ __('Check-in Date') }} <em>*</em></span>
-                    <input type="date" name="check_in_date" value="{{ $checkInDate }}" required>
+                    <input data-bcs-date-input type="date" name="check_in_date" value="{{ $checkInDate }}" required>
                     @error('check_in_date') <span class="bcs-error">{{ $message }}</span> @enderror
                 </label>
 
-                <label>
+                <label data-bcs-date-field tabindex="0">
                     <span>{{ __('Check-out Date') }} <em>*</em></span>
-                    <input type="date" name="check_out_date" value="{{ $checkOutDate }}" required>
+                    <input data-bcs-date-input type="date" name="check_out_date" value="{{ $checkOutDate }}" required>
                     @error('check_out_date') <span class="bcs-error">{{ $message }}</span> @enderror
                 </label>
 

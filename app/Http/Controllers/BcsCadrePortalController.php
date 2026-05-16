@@ -37,7 +37,7 @@ class BcsCadrePortalController extends Controller
                 'check_in' => $this->queryString($request, 'check_in'),
                 'check_out' => $this->queryString($request, 'check_out'),
                 'room_type' => $this->queryString($request, 'room_type'),
-                'adults' => $request->integer('adults') ?: 2,
+                'adults' => $request->integer('adults') ?: 1,
             ],
         ]);
     }
