@@ -35,6 +35,11 @@
             outline: none;
         }
 
+        .availability-date-field,
+        .availability-date-field .availability-input {
+            cursor: pointer;
+        }
+
         .availability-button {
             display: inline-flex;
             align-items: center;
@@ -91,15 +96,29 @@
 
         <div class="availability-card">
             <form wire:submit="checkAvailability" class="availability-form">
-                <label class="availability-field">
+                <label
+                    class="availability-field availability-date-field"
+                    x-data="{ openDatePicker(input) { input?.focus(); if (input?.showPicker) { try { input.showPicker() } catch (e) {} } } }"
+                    x-on:click="openDatePicker($refs.checkInInput)"
+                    x-on:keydown.enter.prevent="openDatePicker($refs.checkInInput)"
+                    x-on:keydown.space.prevent="openDatePicker($refs.checkInInput)"
+                    tabindex="0"
+                >
                     <span>Check-in Date</span>
-                    <input wire:model="checkInDate" type="date" class="availability-input">
+                    <input x-ref="checkInInput" wire:model="checkInDate" type="date" class="availability-input">
                     @error('checkInDate') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
                 </label>
 
-                <label class="availability-field">
+                <label
+                    class="availability-field availability-date-field"
+                    x-data="{ openDatePicker(input) { input?.focus(); if (input?.showPicker) { try { input.showPicker() } catch (e) {} } } }"
+                    x-on:click="openDatePicker($refs.checkOutInput)"
+                    x-on:keydown.enter.prevent="openDatePicker($refs.checkOutInput)"
+                    x-on:keydown.space.prevent="openDatePicker($refs.checkOutInput)"
+                    tabindex="0"
+                >
                     <span>Check-out Date</span>
-                    <input wire:model="checkOutDate" type="date" class="availability-input">
+                    <input x-ref="checkOutInput" wire:model="checkOutDate" type="date" class="availability-input">
                     @error('checkOutDate') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
                 </label>
 

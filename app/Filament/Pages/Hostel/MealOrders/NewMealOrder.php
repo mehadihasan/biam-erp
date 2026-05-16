@@ -84,7 +84,7 @@ class NewMealOrder extends BaseHostelPage
                         ->whereNull('bookings.checked_out_at');
                 })),
             ],
-            'date' => ['required', 'date', 'after:today'],
+            'date' => ['required', 'date', 'after_or_equal:'.$this->tomorrowDate()],
             'mealTypes' => ['required', 'array', 'min:1'],
             'mealTypes.*' => ['required', Rule::in(['breakfast', 'lunch', 'dinner'])],
             'mealQuantities' => ['required', 'array'],

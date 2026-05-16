@@ -94,7 +94,7 @@ class Calendar extends BaseHostelPage
     public function getBookingsProperty(): Collection
     {
         return Booking::query()
-            ->with('room')
+            ->with(['room', 'user'])
             ->whereNotIn('status', ['cancelled', 'checked_out', 'completed'])
             ->where('check_in_date', '<=', $this->monthEnd()->toDateString())
             ->where('check_out_date', '>', $this->monthStart()->toDateString())
@@ -128,6 +128,55 @@ class Calendar extends BaseHostelPage
             ->filter(fn (Booking $booking): bool => $booking->check_in_date->lte($day)
                 && $booking->check_out_date->gt($day))
             ->values();
+    }
+
+    public function roomBookingStatusesForDay(Carbon $day): array
+    {
+        return $this->bookingsForDay($day)
+            ->filter(fn (Booking $booking): bool => $booking->room !== null)
+            ->groupBy('room_id')
+            ->map(function ($bookings): ?array {
+                /** @var Booking $firstBooking */
+                $firstBooking = $bookings->first();
+                $room = $firstBooking->room;
+
+                if ($room === null) {
+                    return null;
+                }
+
+                $roomCapacity = max(0, (int) $room->capacity);
+                $bookedBedSeatCount = (int) $bookings->sum('number_of_rooms');
+
+                if ($roomCapacity < 1 || $bookedBedSeatCount < 1) {
+                    return null;
+                }
+
+                $availableBedSeatCount = max(0, $roomCapacity - $bookedBedSeatCount);
+                $status = $bookedBedSeatCount >= $roomCapacity ? 'occupied' : 'partial';
+
+                return [
+                    'status' => $status,
+                    'label' => $status === 'occupied' ? 'Occupied' : 'Partially Booked',
+                    'room_number' => $room->room_number,
+                    'room_capacity' => $roomCapacity,
+                    'booked_bed_seat_count' => $bookedBedSeatCount,
+                    'available_bed_seat_count' => $availableBedSeatCount,
+                    'bookings' => $bookings
+                        ->map(fn (Booking $booking): array => [
+                            'guest_name' => $booking->user?->name ?: 'Guest',
+                            'bed_seat_count' => (int) $booking->number_of_rooms,
+                        ])
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->filter()
+            ->sortBy([
+                ['status', 'asc'],
+                ['room_number', 'asc'],
+            ])
+            ->values()
+            ->all();
     }
 
     public function roomTypeLabel(?string $type): string
@@ -178,6 +227,14 @@ class Calendar extends BaseHostelPage
             'vip' => 'booking-calendar-event booking-calendar-event--vip',
             'non_ac' => 'booking-calendar-event booking-calendar-event--non-ac',
             default => 'booking-calendar-event booking-calendar-event--ac',
+        };
+    }
+
+    public function bookingStatusClass(array $roomStatus): string
+    {
+        return match ($roomStatus['status'] ?? null) {
+            'occupied' => 'booking-calendar-event booking-calendar-event--occupied',
+            default => 'booking-calendar-event booking-calendar-event--partial',
         };
     }
 
