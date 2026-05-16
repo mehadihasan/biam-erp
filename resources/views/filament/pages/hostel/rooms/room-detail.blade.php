@@ -112,6 +112,13 @@
                     >
                         Edit room
                     </x-filament::button>
+                    <x-filament::button
+                        tag="a"
+                        :href="\App\Filament\Pages\Hostel\Bookings\NewBooking::getUrl(['room_id' => $room->id], panel: 'admin')"
+                        style="background-color: #173c63; color: #ffffff;"
+                    >
+                        Book Now
+                    </x-filament::button>
                 @endif
                 <x-filament::button color="gray" tag="a" :href="$cadreView ? route('cadre.booking') : \App\Filament\Pages\Hostel\Rooms\RoomInventory::getUrl(panel: 'admin')">
                     {{ $cadreView ? 'Back to rooms' : 'Back to inventory' }}

@@ -327,13 +327,28 @@
                 <div class="booking-field-row booking-full-width">
                     <label class="booking-field">
                         <span>Room <span class="booking-required">*</span></span>
-                        <select wire:model.live="selectedRoomId" name="room_id" class="booking-control" @disabled(! $checkInDate || ! $checkOutDate || $this->availableRooms->isEmpty())>
+                        <select wire:model.live="selectedRoomId" name="room_id" class="booking-control" @disabled(! $checkInDate || ! $checkOutDate || ($this->availableRooms->isEmpty() && ! $selectedRoomId))>
                             @if (! $checkInDate || ! $checkOutDate)
+                                @if ($this->selectedRoom)
+                                    <option value="{{ $this->selectedRoom->id }}" selected>
+                                        {{ $this->selectedRoom->room_number }} - select dates to check availability
+                                    </option>
+                                @endif
                                 <option value="">Select dates first...</option>
                             @elseif ($this->availableRooms->isEmpty())
+                                @if ($this->selectedRoom)
+                                    <option value="{{ $this->selectedRoom->id }}" selected>
+                                        {{ $this->selectedRoom->room_number }} - not available for selected dates
+                                    </option>
+                                @endif
                                 <option value="">No rooms available for selected dates</option>
                             @else
                                 <option value="">Select room...</option>
+                                @if ($this->selectedRoomUnavailable && $this->selectedRoom)
+                                    <option value="{{ $this->selectedRoom->id }}" selected>
+                                        {{ $this->selectedRoom->room_number }} - not available for selected dates
+                                    </option>
+                                @endif
                                 @foreach ($this->availableRooms as $room)
                                     <option value="{{ $room->id }}">
                                         {{ $room->room_number }} - BDT {{ number_format((float) $room->base_rate, 0) }}/night
@@ -344,6 +359,9 @@
                         @if ($checkInDate && $checkOutDate && $this->availableRooms->isEmpty())
                             <span class="booking-error">No rooms have available bed/seats for the selected dates.</span>
                         @endif
+                        @if ($this->selectedRoomUnavailable)
+                            <span class="booking-error">The selected room is no longer available for these dates.</span>
+                        @endif
                         @error('selectedRoomId') <span class="booking-error">{{ $message }}</span> @enderror
                     </label>
 
@@ -352,6 +370,8 @@
                         <select wire:model.live="numberOfRooms" name="number_of_rooms" class="booking-control" @disabled(! $selectedRoomId || $this->bedSeatOptions === [])>
                             @if (! $selectedRoomId)
                                 <option value="">Select room first...</option>
+                            @elseif (! $checkInDate || ! $checkOutDate)
+                                <option value="">Select dates first...</option>
                             @elseif ($this->bedSeatOptions === [])
                                 <option value="">No bed/seat available</option>
                             @else
@@ -403,7 +423,7 @@
             @endif
 
             <div class="booking-actions">
-                <button type="submit" class="booking-primary" @disabled($selectedRoomId && $this->availableBedSeatCount === 0)>Create Booking</button>
+                <button type="submit" class="booking-primary" @disabled($this->selectedRoomUnavailable || ($selectedRoomId && $this->availableBedSeatCount === 0))>Create Booking</button>
                 <a href="{{ $cadreFlow ? route('cadre.booking') : \App\Filament\Pages\Hostel\Bookings\AllBookings::getUrl(panel: 'admin') }}" class="booking-cancel">Cancel</a>
             </div>
         </form>

@@ -87,7 +87,7 @@ class NewBooking extends BaseHostelPage
 
         $this->rooms = new Collection;
 
-        $this->selectedRoomId = request()->integer('room_id') ?: null;
+        $this->selectedRoomId = request()->integer('room_id') ?: request()->integer('room') ?: null;
         $this->selectedGuestId = $this->cadreFlow ? $cadreUser?->id : null;
         $this->cadreUserId = $cadreUser?->id;
         $this->roomType = Room::query()->whereKey($this->selectedRoomId)->value('room_type') ?: 'ac';
@@ -120,12 +120,12 @@ class NewBooking extends BaseHostelPage
 
     public function updatedCheckInDate(): void
     {
-        $this->resetRoomSelection();
+        $this->resetBedSeatSelection();
     }
 
     public function updatedCheckOutDate(): void
     {
-        $this->resetRoomSelection();
+        $this->resetBedSeatSelection();
     }
 
     public function getAvailableRoomsProperty(): Collection
@@ -140,7 +140,7 @@ class NewBooking extends BaseHostelPage
 
     public function getAvailableBedSeatCountProperty(): ?int
     {
-        if (! $this->selectedRoomId) {
+        if (! $this->selectedRoomId || ! $this->hasValidDateRange()) {
             return null;
         }
 
@@ -152,6 +152,24 @@ class NewBooking extends BaseHostelPage
 
         return app(RoomAvailabilityService::class)
             ->availableBedSeatCount($room, $this->checkInDate, $this->checkOutDate);
+    }
+
+    public function getSelectedRoomProperty(): ?Room
+    {
+        if (! $this->selectedRoomId) {
+            return null;
+        }
+
+        return Room::query()->find($this->selectedRoomId);
+    }
+
+    public function getSelectedRoomUnavailableProperty(): bool
+    {
+        if (! $this->selectedRoom || ! $this->hasValidDateRange()) {
+            return false;
+        }
+
+        return ! $this->availableRooms->contains('id', $this->selectedRoom->id);
     }
 
     public function getBedSeatOptionsProperty(): array
@@ -417,9 +435,8 @@ class NewBooking extends BaseHostelPage
         $this->numberOfRooms = min(max(1, (int) $this->numberOfRooms), $availableBedSeatCount);
     }
 
-    private function resetRoomSelection(): void
+    private function resetBedSeatSelection(): void
     {
-        $this->selectedRoomId = null;
         $this->numberOfRooms = 1;
     }
 
