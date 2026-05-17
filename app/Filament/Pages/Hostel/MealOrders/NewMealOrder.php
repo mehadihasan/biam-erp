@@ -3,11 +3,11 @@
 namespace App\Filament\Pages\Hostel\MealOrders;
 
 use App\Filament\Pages\Hostel\BaseHostelPage;
+use App\Models\Booking;
 use App\Models\MealOrder;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -49,7 +49,6 @@ class NewMealOrder extends BaseHostelPage
 
     public function mount(): void
     {
-        $this->date = $this->tomorrowDate();
         $this->loadGuests();
     }
 
@@ -82,15 +81,21 @@ class NewMealOrder extends BaseHostelPage
                         ->whereColumn('bookings.user_id', 'users.id')
                         ->whereIn('bookings.status', ['checked_in', 'active'])
                         ->whereNull('bookings.checked_out_at');
-                })),
+            })),
             ],
-            'date' => ['required', 'date', 'after_or_equal:'.$this->tomorrowDate()],
+            'date' => [
+                'required',
+                'date',
+                Rule::in($this->availableMealOrderDatesForGuest($this->guestId)),
+            ],
             'mealTypes' => ['required', 'array', 'min:1'],
             'mealTypes.*' => ['required', Rule::in(['breakfast', 'lunch', 'dinner'])],
             'mealQuantities' => ['required', 'array'],
             'mealQuantities.breakfast' => [in_array('breakfast', $selectedMealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:100'],
             'mealQuantities.lunch' => [in_array('lunch', $selectedMealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:100'],
             'mealQuantities.dinner' => [in_array('dinner', $selectedMealTypes, true) ? 'required' : 'nullable', 'integer', 'min:1', 'max:100'],
+        ], [
+            'date.in' => 'Please select a date from the selected guest booking dates.',
         ]);
 
         $guest = User::query()->findOrFail($validated['guestId']);
@@ -125,6 +130,21 @@ class NewMealOrder extends BaseHostelPage
         $this->redirect(TodayMealOrders::getUrl(panel: 'admin'));
     }
 
+    public function updatedGuestId(): void
+    {
+        $availableDates = $this->availableMealOrderDatesForGuest($this->guestId);
+
+        $this->date = $availableDates[0] ?? null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function selectedMealOrderDates(): array
+    {
+        return $this->availableMealOrderDatesForGuest($this->guestId);
+    }
+
     private function uniqueReference(): string
     {
         do {
@@ -134,9 +154,44 @@ class NewMealOrder extends BaseHostelPage
         return $ref;
     }
 
-    public function tomorrowDate(): string
+    /**
+     * @return list<string>
+     */
+    private function availableMealOrderDatesForGuest(?int $guestId): array
     {
-        return Carbon::tomorrow()->toDateString();
+        if (! $guestId) {
+            return [];
+        }
+
+        $booking = User::query()
+            ->with('activeBooking')
+            ->find($guestId)
+            ?->activeBooking;
+
+        if (! $booking?->check_in_date || ! $booking->check_out_date) {
+            return [];
+        }
+
+        return $this->mealOrderDatesForBooking($booking);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function mealOrderDatesForBooking(Booking $booking): array
+    {
+        $date = $booking->check_in_date->greaterThan(now()->startOfDay())
+            ? $booking->check_in_date->copy()->startOfDay()
+            : now()->startOfDay();
+        $lastDate = $booking->check_out_date->copy()->subDay()->startOfDay();
+        $dates = [];
+
+        while ($date->lessThanOrEqualTo($lastDate)) {
+            $dates[] = $date->toDateString();
+            $date->addDay();
+        }
+
+        return $dates;
     }
 
     private function uniqueCouponCode(): string

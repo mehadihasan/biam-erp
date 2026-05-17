@@ -167,6 +167,10 @@
     </style>
 
     <div class="space-y-8">
+        @php
+            $availableMealOrderDates = $this->selectedMealOrderDates();
+            $selectedOrderDateIsAvailable = $this->date && in_array($this->date, $availableMealOrderDates, true);
+        @endphp
 
         <form wire:submit="save" class="meal-form-card dark:border-gray-800 dark:bg-gray-900">
             <div class="meal-inline-fields">
@@ -185,14 +189,26 @@
 
                 <label
                     class="meal-field meal-date-field"
-                    x-data
-                    x-on:click="$refs.dateInput?.showPicker ? $refs.dateInput.showPicker() : $refs.dateInput?.focus()"
-                    x-on:keydown.enter.prevent="$refs.dateInput?.showPicker ? $refs.dateInput.showPicker() : $refs.dateInput?.focus()"
-                    x-on:keydown.space.prevent="$refs.dateInput?.showPicker ? $refs.dateInput.showPicker() : $refs.dateInput?.focus()"
                     tabindex="0"
                 >
                     <span>Date</span>
-                    <input x-ref="dateInput" wire:model.live="date" type="date" min="{{ $this->tomorrowDate() }}" class="meal-control" required>
+                    <select
+                        wire:model.live="date"
+                        class="meal-control"
+                        required
+                        @disabled($availableMealOrderDates === [])
+                    >
+                        @if ($availableMealOrderDates === [])
+                            <option value="" selected>Select a checked-in guest first...</option>
+                        @elseif (! $selectedOrderDateIsAvailable)
+                            <option value="" selected>Select a booking date...</option>
+                        @endif
+                        @foreach ($availableMealOrderDates as $availableMealOrderDate)
+                            <option value="{{ $availableMealOrderDate }}">
+                                {{ \Illuminate\Support\Carbon::parse($availableMealOrderDate)->format('M d, Y') }}
+                            </option>
+                        @endforeach
+                    </select>
                     @error('date') <span class="meal-error">{{ $message }}</span> @enderror
                 </label>
             </div>
