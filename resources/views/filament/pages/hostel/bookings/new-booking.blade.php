@@ -285,6 +285,10 @@
                             @endforeach
                         </select>
                         @error('selectedGuestId') <span class="booking-error">{{ $message }}</span> @enderror
+                        @if ($this->selectedGuestHasBookingForCheckInDate)
+                            <span class="booking-error">You have already filled your quota today. Please try again tomorrow.</span>
+                        @endif
+                        @error('bookingQuota') <span class="booking-error">{{ $message }}</span> @enderror
                     </label>
 
                     <label class="booking-field">
@@ -304,7 +308,7 @@
                         tabindex="0"
                     >
                         <span>Check-in Date <span class="booking-required">*</span></span>
-                        <input x-ref="checkInInput" wire:model.live="checkInDate" name="check_in" type="date" class="booking-control">
+                        <input x-ref="checkInInput" wire:model.live="checkInDate" name="check_in" type="date" class="booking-control" @disabled($this->selectedGuestHasBookingForCheckInDate)>
                         <span class="booking-note">Check-in Time: 2:00 PM - Fixed by BIAM Policy</span>
                         @error('checkInDate') <span class="booking-error">{{ $message }}</span> @enderror
                     </label>
@@ -318,7 +322,7 @@
                         tabindex="0"
                     >
                         <span>Check-out Date <span class="booking-required">*</span></span>
-                        <input x-ref="checkOutInput" wire:model.live="checkOutDate" name="check_out" type="date" class="booking-control">
+                        <input x-ref="checkOutInput" wire:model.live="checkOutDate" name="check_out" type="date" class="booking-control" @disabled($this->selectedGuestHasBookingForCheckInDate)>
                         <span class="booking-note">Check-out Time: 12:00 Noon - Fixed by BIAM Policy</span>
                         @error('checkOutDate') <span class="booking-error">{{ $message }}</span> @enderror
                     </label>
@@ -423,9 +427,18 @@
             @endif
 
             <div class="booking-actions">
-                <button type="submit" class="booking-primary" @disabled($this->selectedRoomUnavailable || ($selectedRoomId && $this->availableBedSeatCount === 0))>Create Booking</button>
+                <button
+                    type="submit"
+                    class="booking-primary"
+                    wire:loading.attr="disabled"
+                    wire:target="selectedGuestId,checkInDate,checkOutDate,selectedRoomId"
+                    @disabled($this->selectedGuestHasBookingForCheckInDate || $this->selectedRoomUnavailable || ($selectedRoomId && $this->availableBedSeatCount === 0))
+                >
+                    Create Booking
+                </button>
                 <a href="{{ $cadreFlow ? route('cadre.booking') : \App\Filament\Pages\Hostel\Bookings\AllBookings::getUrl(panel: 'admin') }}" class="booking-cancel">Cancel</a>
             </div>
+            <span class="booking-error" wire:loading wire:target="selectedGuestId,checkInDate,checkOutDate,selectedRoomId">Checking booking quota...</span>
         </form>
 
         @if ($showSuccessModal)

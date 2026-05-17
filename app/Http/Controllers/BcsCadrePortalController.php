@@ -75,9 +75,12 @@ class BcsCadrePortalController extends Controller
             ? $this->roomAvailability->availableBedSeatCount($room, $checkInDate, $checkOutDate)
             : null;
         $numberOfRooms = max(1, (int) old('number_of_rooms', $request->integer('rooms') ?: 1));
+        $duplicateBookingDate = $portalUser
+            ? $this->userHasBookingUpdatedToday($portalUser->id)
+            : false;
 
         if (is_int($availableBedSeatCount) && $availableBedSeatCount > 0) {
-            $numberOfRooms = min($numberOfRooms, $availableBedSeatCount);
+            $numberOfRooms = min($numberOfRooms, $availableBedSeatCount, 5);
         }
 
         return view('bcs-cadre.booking-create', [
@@ -89,7 +92,8 @@ class BcsCadrePortalController extends Controller
             'selectedRoomAvailable' => (bool) $selectedRoomAvailable,
             'selectedRoomUnavailable' => (bool) $selectedRoomUnavailable,
             'availableBedSeatCount' => $availableBedSeatCount,
-            'bedSeatOptions' => is_int($availableBedSeatCount) && $availableBedSeatCount > 0 ? range(1, $availableBedSeatCount) : [],
+            'bedSeatOptions' => is_int($availableBedSeatCount) && $availableBedSeatCount > 0 ? range(1, min($availableBedSeatCount, 5)) : [],
+            'duplicateBookingDate' => $duplicateBookingDate,
             'cadreUser' => $portalUser,
             'checkInDate' => $checkInDate,
             'checkOutDate' => $checkOutDate,
@@ -142,7 +146,7 @@ class BcsCadrePortalController extends Controller
             ],
             'check_in_date' => ['required', 'date'],
             'check_out_date' => ['required', 'date', 'after:check_in_date'],
-            'number_of_rooms' => ['required', 'integer', 'min:1', 'max:100'],
+            'number_of_rooms' => ['required', 'integer', 'min:1', 'max:5'],
             'ref' => ['nullable', 'string', 'max:50', 'unique:bookings,ref'],
             'adults' => ['nullable', 'integer', 'min:1', 'max:20'],
             'notes' => ['nullable', 'string'],
@@ -151,6 +155,12 @@ class BcsCadrePortalController extends Controller
         ]);
 
         $room = Room::query()->findOrFail($validated['room_id']);
+
+        if ($this->userHasBookingUpdatedToday($portalUser->id)) {
+            return back()
+                ->withErrors(['booking_quota' => __('You have already filled your quota today. Please try again tomorrow.')])
+                ->withInput();
+        }
 
         $availableBedSeatCount = $this->roomAvailability->availableBedSeatCount($room, $validated['check_in_date'], $validated['check_out_date']);
 
@@ -768,6 +778,14 @@ class BcsCadrePortalController extends Controller
     private function mealOrderDateIsAvailable(Request $request, string $orderDate): bool
     {
         return in_array($orderDate, $this->availableMealOrderDates($request), true);
+    }
+
+    private function userHasBookingUpdatedToday(int $userId): bool
+    {
+        return Booking::query()
+            ->where('user_id', $userId)
+            ->whereDate('updated_at', now()->toDateString())
+            ->exists();
     }
 
     private function abortIfUnauthorizedRecord(Request $request, MealOrder|Feedback $record): void

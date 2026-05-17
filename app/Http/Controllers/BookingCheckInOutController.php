@@ -13,6 +13,12 @@ class BookingCheckInOutController extends Controller
 
     public function checkIn(Booking $booking): RedirectResponse
     {
+        if ($booking->check_in_date?->isFuture()) {
+            return redirect()
+                ->to(CheckInOut::getUrl(panel: 'admin'))
+                ->with('success', __('Check-in is available from the booking date onward.'));
+        }
+
         if (in_array($booking->status, ['pending', 'booked', 'confirmed'], true)) {
             $booking->update([
                 'status' => 'checked_in',

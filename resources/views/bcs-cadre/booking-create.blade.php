@@ -266,6 +266,10 @@
                         <label class="booking-field">
                             <span>{{ __('Guest') }} <span class="booking-required">*</span></span>
                             <div class="booking-readonly">{{ $cadreUser->name }}</div>
+                            @if ($duplicateBookingDate)
+                                <span class="booking-error">{{ __('You have already filled your quota today. Please try again tomorrow.') }}</span>
+                            @endif
+                            @error('booking_quota') <span class="booking-error">{{ $message }}</span> @enderror
                         </label>
 
                         <label class="booking-field">
@@ -278,14 +282,14 @@
                     <div class="booking-date-row booking-full-width">
                         <label class="booking-field booking-date-field" data-bcs-date-field tabindex="0">
                             <span>{{ __('Check-in Date') }} <span class="booking-required">*</span></span>
-                            <input data-bcs-date-input data-booking-query="check_in" type="date" name="check_in_date" value="{{ $checkInDate }}" class="booking-control" required>
+                            <input data-bcs-date-input data-booking-query="check_in" type="date" name="check_in_date" value="{{ $checkInDate }}" class="booking-control" required @disabled($duplicateBookingDate)>
                             <span class="booking-note">{{ __('Check-in Time: 2:00 PM - Fixed by BIAM Policy') }}</span>
                             @error('check_in_date') <span class="booking-error">{{ $message }}</span> @enderror
                         </label>
 
                         <label class="booking-field booking-date-field" data-bcs-date-field tabindex="0">
                             <span>{{ __('Check-out Date') }} <span class="booking-required">*</span></span>
-                            <input data-bcs-date-input data-booking-query="check_out" type="date" name="check_out_date" value="{{ $checkOutDate }}" class="booking-control" required>
+                            <input data-bcs-date-input data-booking-query="check_out" type="date" name="check_out_date" value="{{ $checkOutDate }}" class="booking-control" required @disabled($duplicateBookingDate)>
                             <span class="booking-note">{{ __('Check-out Time: 12:00 Noon - Fixed by BIAM Policy') }}</span>
                             @error('check_out_date') <span class="booking-error">{{ $message }}</span> @enderror
                         </label>
@@ -381,9 +385,10 @@
                 @endif
 
                 <div class="booking-actions">
-                    <button type="button" class="booking-primary" data-open-payment @disabled(! $calculation || $selectedRoomUnavailable || ($selectedRoomId && $availableBedSeatCount === 0))>{{ __('Create Booking') }}</button>
+                    <button type="button" class="booking-primary" data-open-payment @disabled($duplicateBookingDate || ! $calculation || $selectedRoomUnavailable || ($selectedRoomId && $availableBedSeatCount === 0))>{{ __('Create Booking') }}</button>
                     <a href="{{ route($portalRoutePrefix.'.booking') }}" class="booking-cancel">{{ __('Cancel') }}</a>
                 </div>
+                <span class="booking-error" data-booking-quota-loading hidden>{{ __('Checking booking quota...') }}</span>
 
                 <div class="booking-payment-modal" data-payment-modal role="dialog" aria-modal="true" aria-labelledby="booking-payment-title" hidden>
                     <div class="booking-payment-panel">
@@ -472,6 +477,13 @@
 
         document.querySelectorAll('[data-booking-query]').forEach((field) => {
             field.addEventListener('change', () => {
+                document.querySelectorAll('[data-open-payment]').forEach((button) => {
+                    button.disabled = true;
+                });
+                document.querySelectorAll('[data-booking-quota-loading]').forEach((message) => {
+                    message.hidden = false;
+                });
+
                 const url = new URL(window.location.href);
                 const key = field.dataset.bookingQuery;
 

@@ -79,4 +79,9 @@ class CheckInOut extends BaseHostelPage
 
         return "{$roomNumber} ({$type})";
     }
+
+    public function canCheckIn(Booking $booking): bool
+    {
+        return $booking->check_in_date === null || $booking->check_in_date->isToday() || $booking->check_in_date->isPast();
+    }
 }

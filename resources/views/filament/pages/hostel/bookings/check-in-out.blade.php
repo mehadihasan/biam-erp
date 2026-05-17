@@ -105,11 +105,15 @@
                                 <td class="px-4 py-3">BDT {{ number_format((float) $booking->total_rent, 0) }}</td>
                                 <td class="px-4 py-3">
                                     @if ($activeTab === 'pending')
-                                        <form method="post" action="{{ route('check-in-out.check-in', $booking) }}">
-                                            @csrf
-                                            @method('patch')
-                                            <button type="submit" class="check-action check-action--in">Check In</button>
-                                        </form>
+                                        @if ($this->canCheckIn($booking))
+                                            <form method="post" action="{{ route('check-in-out.check-in', $booking) }}">
+                                                @csrf
+                                                @method('patch')
+                                                <button type="submit" class="check-action check-action--in">Check In</button>
+                                            </form>
+                                        @else
+                                            <span class="text-xs text-gray-500">Available on booking date</span>
+                                        @endif
                                     @else
                                         <form method="post" action="{{ route('check-in-out.check-out', $booking) }}">
                                             @csrf

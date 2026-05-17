@@ -118,9 +118,15 @@ class NewBooking extends BaseHostelPage
         $this->clampBedSeatSelection();
     }
 
+    public function updatedSelectedGuestId(): void
+    {
+        $this->resetValidation(['bookingQuota', 'checkInDate']);
+    }
+
     public function updatedCheckInDate(): void
     {
         $this->resetBedSeatSelection();
+        $this->resetValidation(['bookingQuota', 'checkInDate']);
     }
 
     public function updatedCheckOutDate(): void
@@ -180,7 +186,12 @@ class NewBooking extends BaseHostelPage
             return [];
         }
 
-        return range(1, $availableBedSeatCount);
+        return range(1, min($availableBedSeatCount, 5));
+    }
+
+    public function getSelectedGuestHasBookingForCheckInDateProperty(): bool
+    {
+        return $this->userHasBookingUpdatedToday($this->selectedGuestId);
     }
 
     public function getCalculationProperty(): ?array
@@ -315,7 +326,7 @@ class NewBooking extends BaseHostelPage
             'selectedRoomId' => ['required', 'exists:rooms,id'],
             'checkInDate' => ['required', 'date'],
             'checkOutDate' => ['required', 'date', 'after:checkInDate'],
-            'numberOfRooms' => ['required', 'integer', 'min:1'],
+            'numberOfRooms' => ['required', 'integer', 'min:1', 'max:5'],
             'notes' => ['nullable', 'string'],
         ]);
     }
@@ -324,6 +335,12 @@ class NewBooking extends BaseHostelPage
     {
         if ($this->cadreFlow && (int) $validated['selectedGuestId'] !== $this->cadreUserId) {
             throw new HttpException(403, 'Cadre booking guest mismatch.');
+        }
+
+        if ($this->userHasBookingUpdatedToday((int) $validated['selectedGuestId'])) {
+            $this->addError('bookingQuota', 'You have already filled your quota today. Please try again tomorrow.');
+
+            return false;
         }
 
         $availableRoomIds = $this->getAvailableRoomsProperty()->pluck('id')->all();
@@ -432,12 +449,24 @@ class NewBooking extends BaseHostelPage
             return;
         }
 
-        $this->numberOfRooms = min(max(1, (int) $this->numberOfRooms), $availableBedSeatCount);
+        $this->numberOfRooms = min(max(1, (int) $this->numberOfRooms), $availableBedSeatCount, 5);
     }
 
     private function resetBedSeatSelection(): void
     {
         $this->numberOfRooms = 1;
+    }
+
+    private function userHasBookingUpdatedToday(?int $userId): bool
+    {
+        if (! $userId) {
+            return false;
+        }
+
+        return Booking::query()
+            ->where('user_id', $userId)
+            ->whereDate('updated_at', now()->toDateString())
+            ->exists();
     }
 
     private function hasValidDateRange(): bool
