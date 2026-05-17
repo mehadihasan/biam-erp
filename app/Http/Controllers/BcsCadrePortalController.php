@@ -245,9 +245,12 @@ class BcsCadrePortalController extends Controller
             return $redirect;
         }
 
+        $availableMealOrderDates = $this->availableMealOrderDates($request);
+
         return view('bcs-cadre.meal-order', [
             'activeMenu' => 'meal',
             'portalRoutePrefix' => $this->portalRoutePrefix($request),
+            'availableMealOrderDates' => $availableMealOrderDates,
             'orders' => MealOrder::query()
                 ->when(
                     $this->portalIsGuest($request),
@@ -266,6 +269,12 @@ class BcsCadrePortalController extends Controller
         $validated = $request->validated();
         $portalUser = $this->currentPortalUser($request);
         abort_if(! $portalUser, 403, 'Authenticated portal user was not found.');
+
+        if (! $this->mealOrderDateIsAvailable($request, $validated['order_date'])) {
+            return back()
+                ->withErrors(['order_date' => __('Please select a date from your available booking dates.')])
+                ->withInput();
+        }
 
         foreach (array_values(array_unique($validated['meal_types'])) as $mealType) {
             $unitPrice = $this->mealTypeUnitPrice($mealType);
@@ -297,6 +306,13 @@ class BcsCadrePortalController extends Controller
         $this->abortIfUnauthorizedRecord($request, $mealOrder);
 
         $validated = $request->validated();
+
+        if (! $this->mealOrderDateIsAvailable($request, $validated['order_date'])) {
+            return back()
+                ->withErrors(['order_date' => __('Please select a date from your available booking dates.')])
+                ->withInput();
+        }
+
         $mealTypes = array_values(array_unique($validated['meal_types']));
         $mealType = $mealTypes[0];
         $unitPrice = $this->mealTypeUnitPrice($mealType);
@@ -706,6 +722,52 @@ class BcsCadrePortalController extends Controller
         } while (MealOrder::query()->where('reference', $reference)->exists());
 
         return $reference;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function availableMealOrderDates(Request $request): array
+    {
+        $portalUser = $this->currentPortalUser($request);
+
+        if (! $portalUser) {
+            return [];
+        }
+
+        $earliestOrderDate = now()->startOfDay();
+        $dates = [];
+
+        Booking::query()
+            ->where('user_id', $portalUser->id)
+            ->whereIn('status', $this->roomAvailability->blockingBookingStatuses())
+            ->whereDate('check_out_date', '>', $earliestOrderDate->toDateString())
+            ->orderBy('check_in_date')
+            ->get(['check_in_date', 'check_out_date'])
+            ->each(function (Booking $booking) use ($earliestOrderDate, &$dates): void {
+                if (! $booking->check_in_date || ! $booking->check_out_date) {
+                    return;
+                }
+
+                $date = $booking->check_in_date->greaterThan($earliestOrderDate)
+                    ? $booking->check_in_date->copy()->startOfDay()
+                    : $earliestOrderDate->copy();
+                $lastDate = $booking->check_out_date->copy()->subDay()->startOfDay();
+
+                while ($date->lessThanOrEqualTo($lastDate)) {
+                    $dates[$date->toDateString()] = true;
+                    $date->addDay();
+                }
+            });
+
+        ksort($dates);
+
+        return array_keys($dates);
+    }
+
+    private function mealOrderDateIsAvailable(Request $request, string $orderDate): bool
+    {
+        return in_array($orderDate, $this->availableMealOrderDates($request), true);
     }
 
     private function abortIfUnauthorizedRecord(Request $request, MealOrder|Feedback $record): void

@@ -4,10 +4,12 @@
 
 @section('content')
     @php
-        $minimumOrderDate = now()->addDay()->toDateString();
         $mealTypeOptions = ['breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'dinner' => 'Dinner'];
         $selectedMealTypes = old('meal_types', $editingOrder ? [$editingOrder->meal_type] : []);
         $mealQuantities = old('quantities', []);
+        $availableMealOrderDates = $availableMealOrderDates ?? [];
+        $selectedOrderDate = old('order_date', optional($editingOrder?->order_date)->toDateString() ?? ($availableMealOrderDates[0] ?? null));
+        $selectedOrderDateIsAvailable = $selectedOrderDate && in_array($selectedOrderDate, $availableMealOrderDates, true);
     @endphp
 
     <div class="bcs-page">
@@ -26,10 +28,22 @@
                     @method('put')
                 @endif
                 <div class="bcs-meal-types">
-                    <label class="bcs-date-field" data-bcs-date-field tabindex="0">
+                    <label class="bcs-date-field">
                         <span class="bcs-meal-field-label">{{ __('Date') }} <em>*</em></span>
-                        <input data-bcs-date-input type="date" name="order_date" value="{{ old('order_date', optional($editingOrder?->order_date)->toDateString() ?? $minimumOrderDate) }}" min="{{ $minimumOrderDate }}" required>
+                        <select name="order_date" required @disabled($availableMealOrderDates === [])>
+                            @if ($availableMealOrderDates === [])
+                                <option value="" selected>{{ __('No booking dates available') }}</option>
+                            @elseif (! $selectedOrderDateIsAvailable)
+                                <option value="" selected>{{ __('Select a booking date') }}</option>
+                            @endif
+                            @foreach ($availableMealOrderDates as $availableMealOrderDate)
+                                <option value="{{ $availableMealOrderDate }}" @selected($selectedOrderDate === $availableMealOrderDate)>
+                                    {{ \Illuminate\Support\Carbon::parse($availableMealOrderDate)->format('M d, Y') }}
+                                </option>
+                            @endforeach
+                        </select>
                     </label>
+                    @error('order_date') <span class="bcs-error">{{ $message }}</span> @enderror
                     <span class="bcs-meal-field-label">{{ __('Meal Type') }} <em>*</em></span>
                     <div class="bcs-meal-options">
                         @foreach ($mealTypeOptions as $value => $label)
@@ -66,7 +80,7 @@
                     @endforeach
                 </div>
                 <div class="bcs-form-grid__actions">
-                    <button type="submit" class="bcs-action-btn bcs-action-btn--compact">
+                    <button type="submit" class="bcs-action-btn bcs-action-btn--compact" @disabled($availableMealOrderDates === [])>
                         <span aria-hidden="true">+</span>
                         {{ $editingOrder ? __('Update Order') : __('Place Order') }}
                     </button>
