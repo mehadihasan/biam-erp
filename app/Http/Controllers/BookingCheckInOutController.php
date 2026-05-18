@@ -19,7 +19,7 @@ class BookingCheckInOutController extends Controller
                 ->with('success', __('Check-in is available from the booking date onward.'));
         }
 
-        if (in_array($booking->status, ['pending', 'booked', 'confirmed'], true)) {
+        if (in_array($booking->status, ['approved', 'booked', 'confirmed'], true)) {
             $booking->update([
                 'status' => 'checked_in',
                 'checked_in_at' => now(),

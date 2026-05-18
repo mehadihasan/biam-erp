@@ -4,15 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Booking extends Model
+class GuestPendingApproval extends Model
 {
     protected $fillable = [
         'ref',
         'user_id',
         'room_id',
+        'booking_id',
+        'reviewed_by',
         'room_type',
         'number_of_rooms',
         'check_in_date',
@@ -24,9 +24,13 @@ class Booking extends Model
         'calculated_rent',
         'booking_money',
         'total_rent',
+        'payment_amount',
+        'payment_method',
         'status',
-        'checked_in_at',
-        'checked_out_at',
+        'approval_level',
+        'approval_notes',
+        'rejection_reason',
+        'reviewed_at',
     ];
 
     protected function casts(): array
@@ -41,8 +45,8 @@ class Booking extends Model
             'calculated_rent' => 'decimal:2',
             'booking_money' => 'decimal:2',
             'total_rent' => 'decimal:2',
-            'checked_in_at' => 'datetime',
-            'checked_out_at' => 'datetime',
+            'payment_amount' => 'decimal:2',
+            'reviewed_at' => 'datetime',
         ];
     }
 
@@ -56,37 +60,13 @@ class Booking extends Model
         return $this->belongsTo(Room::class);
     }
 
-    public function payments(): HasMany
+    public function booking(): BelongsTo
     {
-        return $this->hasMany(Payment::class);
+        return $this->belongsTo(Booking::class);
     }
 
-    public function approvalActions(): HasMany
+    public function reviewer(): BelongsTo
     {
-        return $this->hasMany(BookingApprovalAction::class);
-    }
-
-    public function latestApprovalAction(): HasOne
-    {
-        return $this->hasOne(BookingApprovalAction::class)->latestOfMany();
-    }
-
-    public function latestApprovedAction(): HasOne
-    {
-        return $this->hasOne(BookingApprovalAction::class)
-            ->where('action', 'approved')
-            ->latestOfMany();
-    }
-
-    public function latestRejectedAction(): HasOne
-    {
-        return $this->hasOne(BookingApprovalAction::class)
-            ->where('action', 'rejected')
-            ->latestOfMany();
-    }
-
-    public function roomAvailability(): HasOne
-    {
-        return $this->hasOne(RoomAvailability::class);
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 }

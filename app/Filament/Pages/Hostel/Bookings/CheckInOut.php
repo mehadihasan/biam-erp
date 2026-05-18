@@ -42,7 +42,7 @@ class CheckInOut extends BaseHostelPage
     {
         return Booking::query()
             ->with(['user', 'room'])
-            ->whereIn('status', ['pending', 'booked', 'confirmed'])
+            ->whereIn('status', ['approved', 'booked', 'confirmed'])
             ->whereNull('checked_in_at')
             ->whereNull('checked_out_at')
             ->orderBy('check_in_date')

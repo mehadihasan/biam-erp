@@ -6,6 +6,7 @@ use App\Http\Requests\FeedbackRequest;
 use App\Http\Requests\MealOrderRequest;
 use App\Models\Booking;
 use App\Models\Feedback;
+use App\Models\GuestPendingApproval;
 use App\Models\MealOrder;
 use App\Models\MenuItem;
 use App\Models\Payment;
@@ -147,7 +148,7 @@ class BcsCadrePortalController extends Controller
             'check_in_date' => ['required', 'date'],
             'check_out_date' => ['required', 'date', 'after:check_in_date'],
             'number_of_rooms' => ['required', 'integer', 'min:1', 'max:5'],
-            'ref' => ['nullable', 'string', 'max:50', 'unique:bookings,ref'],
+            'ref' => ['nullable', 'string', 'max:50', 'unique:bookings,ref', 'unique:guest_pending_approvals,ref'],
             'adults' => ['nullable', 'integer', 'min:1', 'max:20'],
             'notes' => ['nullable', 'string'],
             'payment_guest_name' => [$requiresPayment ? 'required' : 'nullable', 'string', 'max:255'],
@@ -188,8 +189,8 @@ class BcsCadrePortalController extends Controller
             ? $request->validate(['payment_amount' => ['required', 'numeric', 'min:'.$minimumPayment]])
             : null;
 
-        $booking = DB::transaction(function () use ($portalUser, $room, $validated, $calculation, $payment, $requiresPayment): Booking {
-            $booking = Booking::query()->create([
+        if ($this->portalIsGuest($request)) {
+            $approval = GuestPendingApproval::query()->create([
                 'ref' => $validated['ref'] ?? null,
                 'user_id' => $portalUser->id,
                 'room_id' => $room->id,
@@ -204,29 +205,53 @@ class BcsCadrePortalController extends Controller
                 'calculated_rent' => $calculation['calculated_rent'],
                 'booking_money' => $calculation['booking_money'],
                 'total_rent' => $calculation['total_rent'],
+                'payment_amount' => $payment['payment_amount'] ?? null,
+                'payment_method' => $validated['payment_method'] ?? null,
                 'status' => 'pending',
             ]);
 
-            $this->roomAvailability->blockBooking($booking);
-
-            if ($requiresPayment && is_array($payment)) {
-                Payment::query()->create([
-                    'ref' => $this->uniquePaymentReference(),
-                    'booking_id' => $booking->id,
-                    'guest_id' => $booking->user_id,
-                    'amount' => $payment['payment_amount'],
-                    'type' => 'booking_money',
-                    'gateway' => $validated['payment_method'],
-                    'transaction_id' => $this->uniquePaymentTransactionId(),
-                    'status' => 'success',
-                    'paid_at' => now(),
+            $successReference = 'GP-'.str_pad((string) $approval->id, 5, '0', STR_PAD_LEFT);
+        } else {
+            $booking = DB::transaction(function () use ($portalUser, $room, $validated, $calculation, $payment, $requiresPayment): Booking {
+                $booking = Booking::query()->create([
+                    'ref' => $validated['ref'] ?? null,
+                    'user_id' => $portalUser->id,
+                    'room_id' => $room->id,
+                    'room_type' => $room->room_type,
+                    'number_of_rooms' => $validated['number_of_rooms'],
+                    'check_in_date' => $validated['check_in_date'],
+                    'check_out_date' => $validated['check_out_date'],
+                    'notes' => $validated['notes'] ?? null,
+                    'duration_nights' => $calculation['duration_nights'],
+                    'rent_multiplier' => $calculation['rent_multiplier'],
+                    'base_rate' => $calculation['base_rate'],
+                    'calculated_rent' => $calculation['calculated_rent'],
+                    'booking_money' => $calculation['booking_money'],
+                    'total_rent' => $calculation['total_rent'],
+                    'status' => 'approved',
                 ]);
-            }
 
-            return $booking;
-        });
+                $this->roomAvailability->blockBooking($booking);
 
-        $successReference = 'BKG-'.str_pad((string) $booking->id, 4, '0', STR_PAD_LEFT);
+                if ($requiresPayment && is_array($payment)) {
+                    Payment::query()->create([
+                        'ref' => $this->uniquePaymentReference(),
+                        'booking_id' => $booking->id,
+                        'guest_id' => $booking->user_id,
+                        'amount' => $payment['payment_amount'],
+                        'type' => 'booking_money',
+                        'gateway' => $validated['payment_method'],
+                        'transaction_id' => $this->uniquePaymentTransactionId(),
+                        'status' => 'success',
+                        'paid_at' => now(),
+                    ]);
+                }
+
+                return $booking;
+            });
+
+            $successReference = 'BKG-'.str_pad((string) $booking->id, 4, '0', STR_PAD_LEFT);
+        }
 
         if ($request->input('return_to') === 'room_detail') {
             return redirect()
@@ -455,6 +480,10 @@ class BcsCadrePortalController extends Controller
         $charges = Booking::query()
             ->with('room')
             ->where('user_id', $portalUser->id)
+            ->when(
+                $this->portalIsGuest($request),
+                fn ($query) => $query->whereIn('status', $this->guestVisibleBookingStatuses())
+            )
             ->latest('check_in_date')
             ->get()
             ->map(function (Booking $booking): array {
@@ -472,8 +501,8 @@ class BcsCadrePortalController extends Controller
             'activeMenu' => 'billing',
             'charges' => $charges,
             'totalBookings' => $charges->count(),
-            'outstanding' => $charges->where('status', 'pending')->sum('total'),
-            'paid' => $charges->where('status', 'confirmed')->sum('total'),
+            'outstanding' => $charges->whereIn('status', ['approved', 'booked', 'confirmed', 'checked_in', 'active'])->sum('total'),
+            'paid' => $charges->whereIn('status', ['confirmed', 'checked_out', 'completed'])->sum('total'),
         ]);
     }
 
@@ -506,6 +535,14 @@ class BcsCadrePortalController extends Controller
     private function portalRouteName(Request $request, string $name): string
     {
         return $this->portalRoutePrefix($request).'.'.$name;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function guestVisibleBookingStatuses(): array
+    {
+        return ['approved', 'booked', 'confirmed', 'checked_in', 'active', 'checked_out', 'completed'];
     }
 
     private function currentCadreReference(Request $request): string
@@ -750,7 +787,12 @@ class BcsCadrePortalController extends Controller
 
         Booking::query()
             ->where('user_id', $portalUser->id)
-            ->whereIn('status', $this->roomAvailability->blockingBookingStatuses())
+            ->whereIn(
+                'status',
+                $this->portalIsGuest($request)
+                    ? $this->guestVisibleBookingStatuses()
+                    : $this->roomAvailability->blockingBookingStatuses()
+            )
             ->whereDate('check_out_date', '>', $earliestOrderDate->toDateString())
             ->orderBy('check_in_date')
             ->get(['check_in_date', 'check_out_date'])
@@ -784,6 +826,11 @@ class BcsCadrePortalController extends Controller
     {
         return Booking::query()
             ->where('user_id', $userId)
+            ->whereDate('updated_at', now()->toDateString())
+            ->exists()
+            || GuestPendingApproval::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', ['pending', 'escalated', 'approved'])
             ->whereDate('updated_at', now()->toDateString())
             ->exists();
     }

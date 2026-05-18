@@ -26,6 +26,7 @@ class AllBookings extends BaseHostelPage
     {
         return Booking::query()
             ->with(['user', 'room'])
+            ->whereIn('status', ['approved', 'booked', 'confirmed', 'checked_in', 'active', 'checked_out', 'completed'])
             ->latest()
             ->paginate(10);
     }

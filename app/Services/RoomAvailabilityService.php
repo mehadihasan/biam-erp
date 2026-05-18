@@ -14,7 +14,7 @@ class RoomAvailabilityService
     /** @return list<string> */
     public function blockingBookingStatuses(): array
     {
-        return ['pending', 'booked', 'confirmed', 'checked_in', 'active'];
+        return ['pending', 'escalated', 'approved', 'booked', 'confirmed', 'checked_in', 'active'];
     }
 
     public function availableRoomQuery(
