@@ -37,13 +37,7 @@
     }
 
     .fi-body-has-topbar .fi-topbar {
-        padding-left: 260px;
-        transition: padding-left 180ms ease;
-    }
-
-    .bhms-admin-sidebar-collapsed .fi-body-has-topbar .fi-topbar,
-    .bhms-admin-sidebar-collapsed.fi-body-has-topbar .fi-topbar {
-        padding-left: 76px;
+        transition: none;
     }
 }
 
@@ -480,4 +474,187 @@
     .bhms-admin-sidebar-collapsed .fi-sidebar-item a[aria-current='page'] {
         background-color: rgba(255, 255, 255, 0.18) !important;
     }
+}
+
+/* Dynamic admin brand (BHMS / BIMS / BIAM) */
+.fi-topbar {
+    padding-inline: 1.5rem !important;
+}
+
+.fi-topbar-start {
+    margin-inline-end: 1.5rem !important;
+}
+
+.fi-topbar-collapse-sidebar-btn-ctn {
+    display: none !important;
+}
+
+.fi-topbar-start .fi-logo {
+    margin-inline-start: 0 !important;
+}
+
+.fi-admin-brand,
+.bhms-module-selector-topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.fi-admin-brand__logo,
+.bhms-module-selector-topbar__logo {
+    display: block;
+    width: 40px !important;
+    height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    flex: 0 0 40px;
+    object-fit: contain;
+}
+
+.fi-admin-brand__name,
+.bhms-module-selector-topbar__title {
+    line-height: 1;
+}
+
+.fi-topbar .fi-admin-brand__name {
+    color: #111827;
+}
+
+.dark .fi-topbar .fi-admin-brand__name {
+    color: #f9fafb;
+}
+
+.fi-sidebar .fi-admin-brand__name {
+    color: #ffffff !important;
+}
+
+.fi-sidebar .fi-admin-brand__logo {
+    filter: brightness(0) invert(1);
+}
+
+/* Module selector landing page */
+.bhms-module-selector-layout {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: #f3f5f8;
+}
+
+.bhms-module-selector-topbar {
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(16, 24, 40, 0.08);
+}
+
+.bhms-module-selector-topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.bhms-module-selector-topbar__title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #111827;
+}
+
+.bhms-module-selector-topbar__actions {
+    display: flex;
+    align-items: center;
+}
+
+.bhms-module-selector-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem 3rem;
+}
+
+.bhms-module-selector-content {
+    width: 100%;
+    max-width: 56rem;
+}
+
+.bhms-module-selector-content__intro {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.bhms-module-selector-content__title {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.bhms-module-selector-content__subtitle {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.bhms-module-selector-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .bhms-module-selector-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.bhms-module-card {
+    display: block;
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    text-decoration: none;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.bhms-module-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(16, 24, 40, 0.1);
+}
+
+.bhms-module-card__icon {
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.625rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.bhms-module-card__icon--hostel {
+    background: #f59e0b;
+}
+
+.bhms-module-card__icon--inventory {
+    background: #0f766e;
+}
+
+.bhms-module-card__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.bhms-module-card__description {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    color: #6b7280;
 }

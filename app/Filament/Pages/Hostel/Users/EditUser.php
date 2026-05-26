@@ -21,6 +21,11 @@ class EditUser extends BaseHostelPage
 
     public Collection $designations;
 
+    public static function getNavigationUrl(): string
+    {
+        return AllUsers::getUrl(panel: 'admin');
+    }
+
     public function mount(string | int $id): void
     {
         $this->user = User::query()

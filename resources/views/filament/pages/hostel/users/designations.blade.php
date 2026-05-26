@@ -37,7 +37,11 @@
                                 <td class="px-4 py-3">{{ $designation->description ?: '-' }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex flex-wrap justify-center gap-2">
-                                        <a href="{{ url('/admin/hostel/designations/' . $designation->id . '/edit') }}" class="rounded-lg border border-gray-300 px-3 py-1.5 text-center text-xs font-medium dark:border-gray-700">
+                                        <a
+                                            href="{{ \App\Filament\Pages\Hostel\Users\EditDesignation::urlForDesignation($designation->id) }}"
+                                            wire:navigate
+                                            class="rounded-lg border border-gray-300 px-3 py-1.5 text-center text-xs font-medium dark:border-gray-700"
+                                        >
                                             Edit
                                         </a>
                                         <form method="post" action="{{ route('designations.destroy', $designation) }}" onsubmit="return confirm('Delete this designation?')">

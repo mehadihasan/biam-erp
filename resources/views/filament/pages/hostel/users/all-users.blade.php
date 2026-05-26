@@ -50,7 +50,7 @@
                                 <td class="px-4 py-3">{{ $user->designation?->name ?: '-' }}</td>
                                 <td class="px-4 py-3">{{ $user->cadre_number ?: '-' }}</td>
                                 <td class="px-4 py-3">
-                                    <a href="{{ url('/admin/hostel/user/' . $user->id . '/edit') }}" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium dark:border-gray-700">
+                                    <a href="{{ \App\Filament\Pages\Hostel\Users\EditUser::getUrl(panel: 'admin', parameters: ['id' => $user->id]) }}" wire:navigate class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium dark:border-gray-700">
                                         Edit
                                     </a>
                                 </td>

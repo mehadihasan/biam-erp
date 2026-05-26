@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\AdminModule;
 use Filament\Pages\Page;
 
 class HostelDashboard extends Page
@@ -17,6 +18,16 @@ class HostelDashboard extends Page
     protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.pages.hostel-dashboard';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return AdminModule::isHostel();
+    }
+
+    public function mount(): void
+    {
+        AdminModule::set(AdminModule::HOSTEL);
+    }
 
     public function getViewData(): array
     {

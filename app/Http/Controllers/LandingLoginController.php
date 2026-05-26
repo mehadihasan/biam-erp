@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Filament\Pages\HostelDashboard;
+use App\Filament\Pages\ModuleSelector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -27,6 +27,6 @@ class LandingLoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(HostelDashboard::getUrl(panel: 'admin'));
+        return redirect()->to(ModuleSelector::getUrl(panel: 'admin'));
     }
 }

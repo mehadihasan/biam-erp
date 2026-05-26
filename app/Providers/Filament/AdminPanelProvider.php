@@ -7,6 +7,9 @@ use App\Filament\Pages\HostelDashboard;
 use App\Filament\Pages\InventoryDashboard;
 use App\Filament\Pages\ModuleSelector;
 use App\Http\Middleware\AuthenticateFilamentOrCadre;
+use App\Http\Middleware\SyncAdminModule;
+use App\Support\AdminModule;
+use Illuminate\Support\HtmlString;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -34,9 +37,19 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->homeUrl(fn (): string => ModuleSelector::getUrl(panel: 'admin'))
+            ->homeUrl(fn (): string => match (AdminModule::current()) {
+                AdminModule::HOSTEL => HostelDashboard::getUrl(panel: 'admin'),
+                AdminModule::INVENTORY => InventoryDashboard::getUrl(panel: 'admin'),
+                default => ModuleSelector::getUrl(panel: 'admin'),
+            })
             ->login()
-            ->brandName('BHMS')
+            ->brandName(fn (): string => AdminModule::brandName())
+            ->brandLogo(fn (): HtmlString => new HtmlString(
+                view('filament.components.admin-brand', [
+                    'name' => AdminModule::brandName(),
+                ])->render(),
+            ))
+            ->brandLogoHeight('2rem')
             ->spa()
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->assets([
@@ -50,7 +63,7 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => view('filament.hooks.admin-sidebar-toggle')->render(),
             )
             ->navigationGroups([
-                // Group headers are toggles (not links). Items are the links.
+                // Hostel module groups
                 NavigationGroup::make('User Management')->collapsible()->collapsed(),
                 NavigationGroup::make('Room Management')->collapsible()->collapsed(),
                 NavigationGroup::make('Booking & Reservation')->collapsible()->collapsed(),
@@ -87,6 +100,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                SyncAdminModule::class,
             ])
             ->authMiddleware([
                 AuthenticateFilamentOrCadre::class,

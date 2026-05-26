@@ -37,12 +37,12 @@ class DesignationController extends Controller
 
     public function edit(Designation $designation)
     {
-        return redirect()->to(EditDesignation::getUrl(['id' => $designation->id], panel: 'admin'));
+        return redirect()->to(EditDesignation::urlForDesignation($designation->id));
     }
 
     public function show(Designation $designation)
     {
-        return redirect()->to(EditDesignation::getUrl(['id' => $designation->id], panel: 'admin'));
+        return redirect()->to(EditDesignation::urlForDesignation($designation->id));
     }
 
     public function update(Request $request, Designation $designation)
