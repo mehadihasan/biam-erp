@@ -37,7 +37,11 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->homeUrl(fn (): string => ModuleSelector::getUrl(panel: 'admin'))
+            ->homeUrl(fn (): string => match (AdminModule::current()) {
+                AdminModule::HOSTEL => HostelDashboard::getUrl(panel: 'admin'),
+                AdminModule::INVENTORY => InventoryDashboard::getUrl(panel: 'admin'),
+                default => ModuleSelector::getUrl(panel: 'admin'),
+            })
             ->login()
             ->brandName(fn (): string => AdminModule::brandName())
             ->brandLogo(fn (): HtmlString => new HtmlString(

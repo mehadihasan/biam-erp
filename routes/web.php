@@ -27,6 +27,8 @@ use App\Http\Controllers\BookingCheckInOutController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\Hostel\InvoiceDownloadController;
+use App\Http\Controllers\InventoryCategoryController;
+use App\Http\Controllers\InventoryUnitController;
 use App\Http\Controllers\LandingLoginController;
 use App\Http\Controllers\RoomMaintenanceController;
 use App\Http\Controllers\UserController;
@@ -92,6 +94,16 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     Route::get('/modules', fn () => redirect(ModuleSelector::getUrl(panel: 'admin')))->name('modules');
     Route::get('/inventory', fn () => redirect(InventoryDashboard::getUrl(panel: 'admin')))->name('inventory.dashboard');
+
+    Route::prefix('admin/inventory')->name('inventory.')->group(function () {
+        Route::post('/categories', [InventoryCategoryController::class, 'store'])->name('categories.store');
+        Route::put('/categories/{category}', [InventoryCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{category}', [InventoryCategoryController::class, 'destroy'])->name('categories.destroy');
+
+        Route::post('/units', [InventoryUnitController::class, 'store'])->name('units.store');
+        Route::put('/units/{unit}', [InventoryUnitController::class, 'update'])->name('units.update');
+        Route::delete('/units/{unit}', [InventoryUnitController::class, 'destroy'])->name('units.destroy');
+    });
 
     Route::prefix('hostel')->name('hostel.')->group(function () {
         Route::get('/dashboard', fn () => redirect(HostelDashboard::getUrl(panel: 'admin')))->name('dashboard');

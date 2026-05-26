@@ -2,14 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Pages\Inventory\BaseInventoryPage;
 use App\Support\AdminModule;
-use Filament\Pages\Page;
 
-class InventoryDashboard extends Page
+class InventoryDashboard extends BaseInventoryPage
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-cube';
-
-    protected static string | \UnitEnum | null $navigationGroup = 'Inventory Management';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-home';
 
     protected static ?string $title = 'Inventory Dashboard';
 
@@ -20,11 +18,6 @@ class InventoryDashboard extends Page
     protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.pages.inventory-dashboard';
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        return AdminModule::isInventory();
-    }
 
     public function mount(): void
     {
