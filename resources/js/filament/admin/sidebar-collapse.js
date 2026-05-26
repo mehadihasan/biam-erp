@@ -141,7 +141,13 @@
       const activeItem = getActiveItem() ?? getActiveGroup();
       const scroller = document.querySelector(".fi-main-sidebar .fi-sidebar-nav");
 
-      if (!activeItem || !scroller) return;
+      if (!activeItem) return;
+
+      if (!scroller || scroller.scrollHeight <= scroller.clientHeight) {
+        activeItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+        return;
+      }
 
       const itemRect = activeItem.getBoundingClientRect();
       const scrollerRect = scroller.getBoundingClientRect();

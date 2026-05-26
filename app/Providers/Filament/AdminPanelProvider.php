@@ -16,6 +16,7 @@ use Filament\PanelProvider;
 use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -36,12 +37,18 @@ class AdminPanelProvider extends PanelProvider
             ->homeUrl(fn (): string => ModuleSelector::getUrl(panel: 'admin'))
             ->login()
             ->brandName('BHMS')
+            ->spa()
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->assets([
-                Js::make('sidebar-collapse')
+                Js::make('sidebar-collapse', resource_path('js/filament/admin/sidebar-collapse.js'))
+                    ->package('app')
                     ->defer()
                     ->navigateOnce(false),
             ])
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_START,
+                fn (): string => view('filament.hooks.admin-sidebar-toggle')->render(),
+            )
             ->navigationGroups([
                 // Group headers are toggles (not links). Items are the links.
                 NavigationGroup::make('User Management')->collapsible()->collapsed(),

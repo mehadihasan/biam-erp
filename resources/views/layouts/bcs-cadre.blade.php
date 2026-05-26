@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet">
     @vite(['resources/css/bcs-cadre.css', 'resources/js/bcs-cadre.js'])
+    @livewireStyles
     <x-shared-user-menu-styles />
 </head>
 <body class="bcs-body">
@@ -35,5 +36,6 @@
             @yield('content')
         </main>
     </div>
+    @livewireScripts
 </body>
 </html>
