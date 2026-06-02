@@ -29,6 +29,7 @@ use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\Hostel\InvoiceDownloadController;
 use App\Http\Controllers\InventoryCategoryController;
 use App\Http\Controllers\InventoryItemController;
+use App\Http\Controllers\InventorySupplierController;
 use App\Http\Controllers\InventoryUnitController;
 use App\Http\Controllers\LandingLoginController;
 use App\Http\Controllers\RoomMaintenanceController;
@@ -102,6 +103,11 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/items', [InventoryItemController::class, 'store'])->name('items.store');
         Route::put('/items/{item}', [InventoryItemController::class, 'update'])->whereNumber('item')->name('items.update');
         Route::delete('/items/{item}', [InventoryItemController::class, 'destroy'])->whereNumber('item')->name('items.destroy');
+
+        Route::get('/settings/suppliers/{supplier}/edit', [InventorySupplierController::class, 'edit'])->whereNumber('supplier')->name('suppliers.edit');
+        Route::post('/settings/suppliers', [InventorySupplierController::class, 'store'])->name('suppliers.store');
+        Route::put('/settings/suppliers/{supplier}', [InventorySupplierController::class, 'update'])->whereNumber('supplier')->name('suppliers.update');
+        Route::delete('/settings/suppliers/{supplier}', [InventorySupplierController::class, 'destroy'])->whereNumber('supplier')->name('suppliers.destroy');
 
         Route::post('/categories', [InventoryCategoryController::class, 'store'])->name('categories.store');
         Route::put('/categories/{category}', [InventoryCategoryController::class, 'update'])->name('categories.update');
