@@ -28,6 +28,7 @@ use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\Hostel\InvoiceDownloadController;
 use App\Http\Controllers\InventoryCategoryController;
+use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\InventoryUnitController;
 use App\Http\Controllers\LandingLoginController;
 use App\Http\Controllers\RoomMaintenanceController;
@@ -96,6 +97,12 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/inventory', fn () => redirect(InventoryDashboard::getUrl(panel: 'admin')))->name('inventory.dashboard');
 
     Route::prefix('admin/inventory')->name('inventory.')->group(function () {
+        Route::get('/items/{item}/edit', [InventoryItemController::class, 'edit'])->whereNumber('item')->name('items.edit');
+        Route::get('/items/{item}', [InventoryItemController::class, 'show'])->whereNumber('item')->name('items.show');
+        Route::post('/items', [InventoryItemController::class, 'store'])->name('items.store');
+        Route::put('/items/{item}', [InventoryItemController::class, 'update'])->whereNumber('item')->name('items.update');
+        Route::delete('/items/{item}', [InventoryItemController::class, 'destroy'])->whereNumber('item')->name('items.destroy');
+
         Route::post('/categories', [InventoryCategoryController::class, 'store'])->name('categories.store');
         Route::put('/categories/{category}', [InventoryCategoryController::class, 'update'])->name('categories.update');
         Route::delete('/categories/{category}', [InventoryCategoryController::class, 'destroy'])->name('categories.destroy');
