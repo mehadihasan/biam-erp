@@ -29,6 +29,7 @@ use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\Hostel\InvoiceDownloadController;
 use App\Http\Controllers\InventoryCategoryController;
 use App\Http\Controllers\InventoryItemController;
+use App\Http\Controllers\InventoryRequisitionController;
 use App\Http\Controllers\InventorySupplierController;
 use App\Http\Controllers\InventoryUnitController;
 use App\Http\Controllers\LandingLoginController;
@@ -103,6 +104,8 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/items', [InventoryItemController::class, 'store'])->name('items.store');
         Route::put('/items/{item}', [InventoryItemController::class, 'update'])->whereNumber('item')->name('items.update');
         Route::delete('/items/{item}', [InventoryItemController::class, 'destroy'])->whereNumber('item')->name('items.destroy');
+
+        Route::get('/requisitions/{requisition}', [InventoryRequisitionController::class, 'show'])->whereNumber('requisition')->name('requisitions.show');
 
         Route::get('/settings/suppliers/{supplier}/edit', [InventorySupplierController::class, 'edit'])->whereNumber('supplier')->name('suppliers.edit');
         Route::post('/settings/suppliers', [InventorySupplierController::class, 'store'])->name('suppliers.store');

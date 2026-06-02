@@ -73,6 +73,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Feedback')->collapsible()->collapsed(),
                 NavigationGroup::make('Items')->collapsible()->collapsed(),
                 NavigationGroup::make('Stocks')->collapsible()->collapsed(),
+                NavigationGroup::make('Requisitions')->collapsible()->collapsed(),
                 NavigationGroup::make('Settings')->collapsible()->collapsed(),
             ])
             ->colors([
