@@ -86,7 +86,9 @@
                     <select wire:model.live="selectedItemId" class="req-form-control">
                         <option value="">Choose item...</option>
                         @foreach ($items as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            <option value="{{ $item->id }}">
+                                {{ $item->name }} (Available: {{ $this->formatNumber((float) $item->available_stock) }} {{ $item->unit?->name }})
+                            </option>
                         @endforeach
                     </select>
                     @error('selectedItemId') <span class="req-form-error">{{ $message }}</span> @enderror
@@ -145,7 +147,9 @@
                                                 aria-label="Item {{ $loop->iteration }}"
                                             >
                                                 @foreach ($items as $item)
-                                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                                    <option value="{{ $item->id }}">
+                                                        {{ $item->name }} (Available: {{ $this->formatNumber((float) $item->available_stock) }} {{ $item->unit?->name }})
+                                                    </option>
                                                 @endforeach
                                             </select>
                                             @error('selectedItems.' . $loop->index . '.inventory_item_id') <span class="req-form-error">{{ $message }}</span> @enderror

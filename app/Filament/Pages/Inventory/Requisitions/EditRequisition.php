@@ -6,12 +6,16 @@ use App\Filament\Pages\Inventory\BaseInventoryPage;
 use App\Models\InventoryItem;
 use App\Models\InventoryRequisition;
 use App\Models\InventoryUnit;
+use App\Services\InventoryStockService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EditRequisition extends BaseInventoryPage
 {
+    private const FINALIZED_MESSAGE = 'This requisition has already been finalized and cannot be modified.';
+
     protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $title = 'Edit Requisition';
@@ -57,6 +61,13 @@ class EditRequisition extends BaseInventoryPage
             ->with(['items.item', 'items.unit'])
             ->findOrFail($requisitionId);
 
+        if ($this->requisition->status !== InventoryRequisition::STATUS_PENDING) {
+            session()->flash('error', __(self::FINALIZED_MESSAGE));
+            $this->redirect(AllRequisitions::getUrl(panel: 'admin'), navigate: true);
+
+            return;
+        }
+
         $this->requisitionDate = $this->requisition->requisition_date?->toDateString() ?? now()->toDateString();
         $this->requesterName = $this->requisition->requester_name;
         $this->department = $this->requisition->department ?? '';
@@ -88,6 +99,10 @@ class EditRequisition extends BaseInventoryPage
 
     public function addSelectedItem(): void
     {
+        if (! $this->ensurePending()) {
+            return;
+        }
+
         $this->validate([
             'selectedItemId' => ['required', 'exists:inventory_items,id'],
             'selectedUnitId' => ['required', 'exists:inventory_units,id'],
@@ -106,6 +121,8 @@ class EditRequisition extends BaseInventoryPage
             if ((int) $selectedItem['inventory_item_id'] === $item->id) {
                 $quantity += (float) $selectedItem['quantity'];
 
+                $this->ensureItemQuantityIsAvailable($item->id, $quantity, 'quantity');
+
                 $this->selectedItems[$index]['inventory_unit_id'] = $unit->id;
                 $this->selectedItems[$index]['unit_name'] = $unit->name;
                 $this->selectedItems[$index]['quantity'] = $this->numberForInput($quantity);
@@ -116,6 +133,8 @@ class EditRequisition extends BaseInventoryPage
                 return;
             }
         }
+
+        $this->ensureItemQuantityIsAvailable($item->id, $quantity, 'quantity');
 
         $this->selectedItems[] = [
             'inventory_item_id' => $item->id,
@@ -131,6 +150,10 @@ class EditRequisition extends BaseInventoryPage
 
     public function removeSelectedItem(int $index): void
     {
+        if (! $this->ensurePending()) {
+            return;
+        }
+
         unset($this->selectedItems[$index]);
 
         $this->selectedItems = array_values($this->selectedItems);
@@ -138,6 +161,10 @@ class EditRequisition extends BaseInventoryPage
 
     public function refreshSelectedItemRow(int $index): void
     {
+        if (! $this->ensurePending()) {
+            return;
+        }
+
         if (! isset($this->selectedItems[$index])) {
             return;
         }
@@ -157,6 +184,10 @@ class EditRequisition extends BaseInventoryPage
 
     public function refreshSelectedUnitRow(int $index): void
     {
+        if (! $this->ensurePending()) {
+            return;
+        }
+
         if (! isset($this->selectedItems[$index])) {
             return;
         }
@@ -172,6 +203,10 @@ class EditRequisition extends BaseInventoryPage
 
     public function updateRequisition(): mixed
     {
+        if (! $this->ensurePending()) {
+            return null;
+        }
+
         $this->validate([
             'requisitionDate' => ['required', 'date'],
             'requesterName' => ['required', 'string', 'max:255'],
@@ -187,6 +222,8 @@ class EditRequisition extends BaseInventoryPage
             'requesterName' => 'requester',
             'selectedItems' => 'items',
         ]);
+
+        $this->ensureSelectedItemsAreAvailable();
 
         DB::transaction(function (): void {
             $this->requisition->update([
@@ -215,11 +252,27 @@ class EditRequisition extends BaseInventoryPage
 
     public function getItems(): Collection
     {
-        return InventoryItem::query()
+        $selectedItemIds = collect($this->selectedItems)
+            ->pluck('inventory_item_id')
+            ->map(fn ($itemId): int => (int) $itemId)
+            ->all();
+        $items = InventoryItem::query()
             ->with('unit')
-            ->where('is_active', true)
+            ->where(function ($query) use ($selectedItemIds): void {
+                $query
+                    ->where('is_active', true)
+                    ->orWhereIn('id', $selectedItemIds);
+            })
             ->orderBy('name')
             ->get();
+
+        $availableQuantities = app(InventoryStockService::class)
+            ->availableQuantities($items->pluck('id')->all());
+
+        return $items
+            ->filter(fn (InventoryItem $item): bool => (float) ($availableQuantities[$item->id] ?? 0) > 0 || in_array($item->id, $selectedItemIds, true))
+            ->each(fn (InventoryItem $item) => $item->setAttribute('available_stock', (float) ($availableQuantities[$item->id] ?? 0)))
+            ->values();
     }
 
     public function getUnits(): Collection
@@ -238,6 +291,11 @@ class EditRequisition extends BaseInventoryPage
         return InventoryItem::query()->with('unit')->find($this->selectedItemId);
     }
 
+    public function formatNumber(float $value): string
+    {
+        return $this->numberForInput($value);
+    }
+
     private function resetSelectionRow(): void
     {
         $this->selectedItemId = '';
@@ -245,6 +303,44 @@ class EditRequisition extends BaseInventoryPage
         $this->quantity = '1';
         $this->notes = '';
         $this->resetValidation(['selectedItemId', 'selectedUnitId', 'quantity', 'notes']);
+    }
+
+    private function ensurePending(): bool
+    {
+        if ($this->requisition->refresh()->status === InventoryRequisition::STATUS_PENDING) {
+            return true;
+        }
+
+        session()->flash('error', __(self::FINALIZED_MESSAGE));
+        $this->redirect(AllRequisitions::getUrl(panel: 'admin'), navigate: true);
+
+        return false;
+    }
+
+    private function ensureSelectedItemsAreAvailable(): void
+    {
+        $requestedByItem = collect($this->selectedItems)
+            ->groupBy('inventory_item_id')
+            ->map(fn ($items): float => $items->sum(fn (array $item): float => (float) $item['quantity']));
+
+        foreach ($requestedByItem as $itemId => $quantity) {
+            $this->ensureItemQuantityIsAvailable((int) $itemId, (float) $quantity, 'selectedItems');
+        }
+    }
+
+    private function ensureItemQuantityIsAvailable(int $itemId, float $quantity, string $field): void
+    {
+        $availableQuantity = app(InventoryStockService::class)->availableQuantity($itemId);
+
+        if ($quantity <= $availableQuantity) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            $field => __('Requested quantity cannot exceed available stock (:available).', [
+                'available' => $this->numberForInput($availableQuantity),
+            ]),
+        ]);
     }
 
     private function numberForInput(float $value): string

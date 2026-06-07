@@ -6,8 +6,10 @@ use App\Filament\Pages\Inventory\BaseInventoryPage;
 use App\Models\InventoryItem;
 use App\Models\InventoryRequisition;
 use App\Models\InventoryUnit;
+use App\Services\InventoryStockService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CreateRequisition extends BaseInventoryPage
 {
@@ -24,6 +26,8 @@ class CreateRequisition extends BaseInventoryPage
     protected static ?int $navigationSort = 62;
 
     protected string $view = 'filament.pages.inventory.requisitions.create';
+
+    public string $requisitionDate = '';
 
     public string $requesterName = '';
 
@@ -43,6 +47,7 @@ class CreateRequisition extends BaseInventoryPage
 
     public function mount(): void
     {
+        $this->requisitionDate = now()->toDateString();
         $this->requesterName = auth()->user()?->name ?? '';
     }
 
@@ -78,6 +83,8 @@ class CreateRequisition extends BaseInventoryPage
             if ((int) $selectedItem['inventory_item_id'] === $item->id) {
                 $quantity += (float) $selectedItem['quantity'];
 
+                $this->ensureItemQuantityIsAvailable($item->id, $quantity, 'quantity');
+
                 $this->selectedItems[$index]['inventory_unit_id'] = $unit->id;
                 $this->selectedItems[$index]['unit_name'] = $unit->name;
                 $this->selectedItems[$index]['quantity'] = $this->numberForInput($quantity);
@@ -88,6 +95,8 @@ class CreateRequisition extends BaseInventoryPage
                 return;
             }
         }
+
+        $this->ensureItemQuantityIsAvailable($item->id, $quantity, 'quantity');
 
         $this->selectedItems[] = [
             'inventory_item_id' => $item->id,
@@ -111,6 +120,7 @@ class CreateRequisition extends BaseInventoryPage
     public function submitRequisition(): mixed
     {
         $this->validate([
+            'requisitionDate' => ['required', 'date'],
             'requesterName' => ['required', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],
             'purpose' => ['nullable', 'string', 'max:255'],
@@ -120,14 +130,17 @@ class CreateRequisition extends BaseInventoryPage
             'selectedItems.*.quantity' => ['required', 'numeric', 'min:1'],
             'selectedItems.*.notes' => ['nullable', 'string'],
         ], [], [
+            'requisitionDate' => 'requisition date',
             'requesterName' => 'requester',
             'selectedItems' => 'items',
         ]);
 
+        $this->ensureSelectedItemsAreAvailable();
+
         DB::transaction(function (): void {
             $requisition = InventoryRequisition::query()->create([
                 'ref_no' => $this->generateRefNo(),
-                'requisition_date' => now()->toDateString(),
+                'requisition_date' => $this->requisitionDate,
                 'requester_name' => $this->requesterName,
                 'department' => $this->department ?: null,
                 'purpose' => $this->purpose ?: null,
@@ -151,11 +164,19 @@ class CreateRequisition extends BaseInventoryPage
 
     public function getItems(): Collection
     {
-        return InventoryItem::query()
+        $items = InventoryItem::query()
             ->with('unit')
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
+
+        $availableQuantities = app(InventoryStockService::class)
+            ->availableQuantities($items->pluck('id')->all());
+
+        return $items
+            ->filter(fn (InventoryItem $item): bool => (float) ($availableQuantities[$item->id] ?? 0) > 0)
+            ->each(fn (InventoryItem $item) => $item->setAttribute('available_stock', (float) ($availableQuantities[$item->id] ?? 0)))
+            ->values();
     }
 
     public function getUnits(): Collection
@@ -174,6 +195,11 @@ class CreateRequisition extends BaseInventoryPage
         return InventoryItem::query()->with('unit')->find($this->selectedItemId);
     }
 
+    public function formatNumber(float $value): string
+    {
+        return $this->numberForInput($value);
+    }
+
     private function resetSelectionRow(): void
     {
         $this->selectedItemId = '';
@@ -181,6 +207,32 @@ class CreateRequisition extends BaseInventoryPage
         $this->quantity = '1';
         $this->notes = '';
         $this->resetValidation(['selectedItemId', 'selectedUnitId', 'quantity', 'notes']);
+    }
+
+    private function ensureSelectedItemsAreAvailable(): void
+    {
+        $requestedByItem = collect($this->selectedItems)
+            ->groupBy('inventory_item_id')
+            ->map(fn ($items): float => $items->sum(fn (array $item): float => (float) $item['quantity']));
+
+        foreach ($requestedByItem as $itemId => $quantity) {
+            $this->ensureItemQuantityIsAvailable((int) $itemId, (float) $quantity, 'selectedItems');
+        }
+    }
+
+    private function ensureItemQuantityIsAvailable(int $itemId, float $quantity, string $field): void
+    {
+        $availableQuantity = app(InventoryStockService::class)->availableQuantity($itemId);
+
+        if ($quantity <= $availableQuantity) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            $field => __('Requested quantity cannot exceed available stock (:available).', [
+                'available' => $this->numberForInput($availableQuantity),
+            ]),
+        ]);
     }
 
     private function generateRefNo(): string

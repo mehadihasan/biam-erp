@@ -38,6 +38,11 @@ class InventoryRequisition extends Model
         return $this->hasMany(InventoryRequisitionItem::class);
     }
 
+    public function stockOuts(): HasMany
+    {
+        return $this->hasMany(InventoryStockOut::class);
+    }
+
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

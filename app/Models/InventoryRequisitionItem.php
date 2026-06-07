@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InventoryRequisitionItem extends Model
 {
@@ -32,5 +33,10 @@ class InventoryRequisitionItem extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(InventoryUnit::class, 'inventory_unit_id');
+    }
+
+    public function stockOuts(): HasMany
+    {
+        return $this->hasMany(InventoryStockOut::class);
     }
 }

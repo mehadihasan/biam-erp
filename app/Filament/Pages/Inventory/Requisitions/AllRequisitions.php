@@ -4,6 +4,7 @@ namespace App\Filament\Pages\Inventory\Requisitions;
 
 use App\Filament\Pages\Inventory\BaseInventoryPage;
 use App\Models\InventoryRequisition;
+use App\Services\InventoryStockService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\WithPagination;
@@ -11,6 +12,8 @@ use Livewire\WithPagination;
 class AllRequisitions extends BaseInventoryPage
 {
     use WithPagination;
+
+    private const FINALIZED_MESSAGE = 'This requisition has already been finalized and cannot be modified.';
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
@@ -44,7 +47,33 @@ class AllRequisitions extends BaseInventoryPage
 
     public function approve(int $requisitionId): void
     {
-        $requisition = InventoryRequisition::query()->findOrFail($requisitionId);
+        $requisition = InventoryRequisition::query()
+            ->with('items.item')
+            ->findOrFail($requisitionId);
+
+        if ($requisition->status !== InventoryRequisition::STATUS_PENDING) {
+            $this->showFinalizedError();
+
+            return;
+        }
+
+        foreach ($requisition->items as $item) {
+            $availableQuantity = app(InventoryStockService::class)->availableQuantity($item->inventory_item_id);
+
+            if ((float) $item->quantity > $availableQuantity) {
+                $message = __('Cannot approve :ref. :item requested quantity (:requested) exceeds available stock (:available).', [
+                    'ref' => $requisition->ref_no,
+                    'item' => $item->item?->name ?? __('Selected item'),
+                    'requested' => $this->formatNumber((float) $item->quantity),
+                    'available' => $this->formatNumber($availableQuantity),
+                ]);
+
+                $this->addError('approval', $message);
+                session()->flash('error', $message);
+
+                return;
+            }
+        }
 
         $requisition->update([
             'status' => InventoryRequisition::STATUS_APPROVED,
@@ -60,6 +89,12 @@ class AllRequisitions extends BaseInventoryPage
     public function reject(int $requisitionId): void
     {
         $requisition = InventoryRequisition::query()->findOrFail($requisitionId);
+
+        if ($requisition->status !== InventoryRequisition::STATUS_PENDING) {
+            $this->showFinalizedError();
+
+            return;
+        }
 
         $requisition->update([
             'status' => InventoryRequisition::STATUS_REJECTED,
@@ -95,5 +130,13 @@ class AllRequisitions extends BaseInventoryPage
     public function formatNumber(float $value): string
     {
         return rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
+    }
+
+    private function showFinalizedError(): void
+    {
+        $message = __(self::FINALIZED_MESSAGE);
+
+        $this->addError('approval', $message);
+        session()->flash('error', $message);
     }
 }

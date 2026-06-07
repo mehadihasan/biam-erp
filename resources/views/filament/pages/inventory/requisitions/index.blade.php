@@ -81,6 +81,12 @@
             </div>
         @endif
 
+        @if (session('error') || $errors->has('approval'))
+            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {{ session('error') ?: $errors->first('approval') }}
+            </div>
+        @endif
+
         <div class="req-filters">
             <label class="req-search-wrap">
                 <x-filament::icon icon="heroicon-o-magnifying-glass" class="req-search-icon" />
@@ -138,6 +144,7 @@
                                     'rejected' => 'req-status--rejected',
                                     default => 'req-status--pending',
                                 };
+                                $isPending = $requisition->status === \App\Models\InventoryRequisition::STATUS_PENDING;
                             @endphp
                             <tr>
                                 <td>{{ $requisitions->firstItem() + $loop->index }}</td>
@@ -155,15 +162,17 @@
                                         <a href="{{ route('inventory.requisitions.show', $requisition) }}" wire:navigate class="req-icon-button" title="View" aria-label="View {{ $requisition->ref_no }}">
                                             <x-filament::icon icon="heroicon-o-eye" />
                                         </a>
-                                        <a href="{{ route('inventory.requisitions.edit', $requisition) }}" wire:navigate class="req-icon-button req-icon-button--edit" title="Edit" aria-label="Edit {{ $requisition->ref_no }}">
-                                            <x-filament::icon icon="heroicon-o-pencil-square" />
-                                        </a>
-                                        <button type="button" wire:click="approve({{ $requisition->id }})" class="req-icon-button req-icon-button--approve" title="Approve" aria-label="Approve {{ $requisition->ref_no }}">
-                                            <x-filament::icon icon="heroicon-o-check" />
-                                        </button>
-                                        <button type="button" wire:click="reject({{ $requisition->id }})" class="req-icon-button req-icon-button--reject" title="Reject" aria-label="Reject {{ $requisition->ref_no }}">
-                                            <x-filament::icon icon="heroicon-o-x-mark" />
-                                        </button>
+                                        @if ($isPending)
+                                            <a href="{{ route('inventory.requisitions.edit', $requisition) }}" wire:navigate class="req-icon-button req-icon-button--edit" title="Edit" aria-label="Edit {{ $requisition->ref_no }}">
+                                                <x-filament::icon icon="heroicon-o-pencil-square" />
+                                            </a>
+                                            <button type="button" wire:click="approve({{ $requisition->id }})" class="req-icon-button req-icon-button--approve" title="Approve" aria-label="Approve {{ $requisition->ref_no }}">
+                                                <x-filament::icon icon="heroicon-o-check" />
+                                            </button>
+                                            <button type="button" wire:click="reject({{ $requisition->id }})" class="req-icon-button req-icon-button--reject" title="Reject" aria-label="Reject {{ $requisition->ref_no }}">
+                                                <x-filament::icon icon="heroicon-o-x-mark" />
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

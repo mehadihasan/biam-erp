@@ -9,7 +9,7 @@
         .req-form-title { color: #001b33; font-size: 28px; font-weight: 800; line-height: 1.15; }
         .req-form-subtitle { margin-top: 4px; color: #64748b; font-size: 16px; }
         .req-form-card { border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; padding: 26px 24px 28px; }
-        .req-top-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+        .req-top-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
         .req-item-grid { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(150px, .36fr) minmax(120px, .32fr) minmax(180px, .44fr) auto; gap: 14px; align-items: end; margin-top: 16px; }
         .req-form-field { display: flex; min-width: 0; flex-direction: column; gap: 8px; color: #001b33; font-size: 16px; font-weight: 500; line-height: 1.25; }
         .req-required { color: #dc2626; }
@@ -31,7 +31,7 @@
         .req-remove { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border: 0; background: transparent; color: #dc2626; cursor: pointer; }
         .req-remove svg { width: 18px; height: 18px; }
         .req-form-actions { display: flex; gap: 14px; margin-top: 26px; }
-        @media (max-width: 1100px) { .req-item-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .req-form-add { width: 100%; } }
+        @media (max-width: 1180px) { .req-top-grid, .req-item-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .req-form-add { width: 100%; } }
         @media (max-width: 767px) { .req-form-card { padding: 22px 18px; } .req-top-grid, .req-item-grid { grid-template-columns: 1fr; } .req-form-actions { flex-direction: column; } .req-form-submit, .req-form-cancel { width: 100%; } }
         .dark .req-form-page, .dark .req-form-title, .dark .req-form-field, .dark .req-form-section, .dark .req-items-table { color: #fff; }
         .dark .req-form-subtitle { color: #94a3b8; }
@@ -48,6 +48,17 @@
 
         <form wire:submit="submitRequisition" class="req-form-card">
             <div class="req-top-grid">
+                <label class="req-form-field">
+                    <span>Requisition Date <span class="req-required">*</span></span>
+                    <input
+                        wire:model="requisitionDate"
+                        type="date"
+                        class="req-form-control"
+                        onclick="try { this.showPicker?.() } catch (e) {}"
+                        onfocus="try { this.showPicker?.() } catch (e) {}"
+                    >
+                    @error('requisitionDate') <span class="req-form-error">{{ $message }}</span> @enderror
+                </label>
                 <label class="req-form-field">
                     <span>Requester <span class="req-required">*</span></span>
                     <input wire:model="requesterName" type="text" class="req-form-control">
@@ -72,7 +83,9 @@
                     <select wire:model.live="selectedItemId" class="req-form-control">
                         <option value="">Choose item...</option>
                         @foreach ($items as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            <option value="{{ $item->id }}">
+                                {{ $item->name }} (Available: {{ $this->formatNumber((float) $item->available_stock) }} {{ $item->unit?->name }})
+                            </option>
                         @endforeach
                     </select>
                     @error('selectedItemId') <span class="req-form-error">{{ $message }}</span> @enderror

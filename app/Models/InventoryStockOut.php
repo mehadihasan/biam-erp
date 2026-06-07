@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InventoryStockOut extends Model
 {
     protected $fillable = [
+        'inventory_requisition_id',
+        'inventory_requisition_item_id',
         'inventory_item_id',
         'quantity',
         'issued_to_department',
@@ -29,6 +31,16 @@ class InventoryStockOut extends Model
     public function item(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class, 'inventory_item_id');
+    }
+
+    public function requisition(): BelongsTo
+    {
+        return $this->belongsTo(InventoryRequisition::class, 'inventory_requisition_id');
+    }
+
+    public function requisitionItem(): BelongsTo
+    {
+        return $this->belongsTo(InventoryRequisitionItem::class, 'inventory_requisition_item_id');
     }
 
     public function creator(): BelongsTo
