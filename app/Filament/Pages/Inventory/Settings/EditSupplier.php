@@ -3,7 +3,9 @@
 namespace App\Filament\Pages\Inventory\Settings;
 
 use App\Filament\Pages\Inventory\BaseInventoryPage;
+use App\Models\InventoryCategory;
 use App\Models\InventorySupplier;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EditSupplier extends BaseInventoryPage
@@ -31,11 +33,20 @@ class EditSupplier extends BaseInventoryPage
             throw new NotFoundHttpException('Supplier not found.');
         }
 
-        $this->supplier = InventorySupplier::query()->findOrFail($supplierId);
+        $this->supplier = InventorySupplier::query()
+            ->with('category')
+            ->findOrFail($supplierId);
     }
 
     public static function urlForSupplier(int $supplierId, string $panel = 'admin'): string
     {
         return static::getUrl(panel: $panel) . '?id=' . $supplierId;
+    }
+
+    public function getCategories(): Collection
+    {
+        return InventoryCategory::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 }

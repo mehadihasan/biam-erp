@@ -1,6 +1,7 @@
 <x-filament-panels::page>
     @php
         $supplier = null;
+        $categories = $this->getCategories();
     @endphp
 
     @include('filament.pages.inventory.settings._supplier-form-styles')

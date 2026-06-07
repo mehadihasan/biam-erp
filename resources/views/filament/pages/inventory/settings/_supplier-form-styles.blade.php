@@ -57,6 +57,69 @@
         resize: vertical;
     }
 
+    .supplier-form__combo {
+        position: relative;
+    }
+
+    .supplier-form__combo-wrap {
+        position: relative;
+        min-width: 0;
+    }
+
+    .supplier-form__combo-input {
+        padding-right: 40px;
+    }
+
+    .supplier-form__combo-wrap::after {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #64748b;
+        border-bottom: 2px solid #64748b;
+        content: "";
+        pointer-events: none;
+        transform: translateY(-65%) rotate(45deg);
+    }
+
+    .supplier-form__combo-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 6px);
+        z-index: 30;
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
+    }
+
+    .supplier-form__combo-option {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        border: 0;
+        background: transparent;
+        padding: 10px 14px;
+        color: #001b33;
+        font-size: 15px;
+        text-align: left;
+    }
+
+    .supplier-form__combo-option:hover,
+    .supplier-form__combo-option--selected {
+        background: #f1f5f9;
+    }
+
+    .supplier-form__combo-empty {
+        padding: 10px 14px;
+        color: #64748b;
+        font-size: 14px;
+    }
+
     .supplier-form__control:focus {
         border-color: #173c63;
         box-shadow: 0 0 0 1px #173c63;
@@ -159,6 +222,24 @@
         border-color: #475569;
         background: #1f2937;
         color: #ffffff;
+    }
+
+    .dark .supplier-form__combo-menu {
+        border-color: #475569;
+        background: #111827;
+    }
+
+    .dark .supplier-form__combo-option {
+        color: #ffffff;
+    }
+
+    .dark .supplier-form__combo-option:hover,
+    .dark .supplier-form__combo-option--selected {
+        background: #1f2937;
+    }
+
+    .dark .supplier-form__combo-empty {
+        color: #94a3b8;
     }
 
     .dark .supplier-form__cancel {

@@ -45,6 +45,7 @@ class Suppliers extends BaseInventoryPage
     public function getSuppliers(): LengthAwarePaginator
     {
         return InventorySupplier::query()
+            ->with('category')
             ->when(trim($this->search) !== '', function (Builder $query): void {
                 $search = '%' . trim($this->search) . '%';
 
@@ -54,7 +55,7 @@ class Suppliers extends BaseInventoryPage
                         ->orWhere('contact_person', 'like', $search)
                         ->orWhere('phone', 'like', $search)
                         ->orWhere('email', 'like', $search)
-                        ->orWhere('category', 'like', $search);
+                        ->orWhereHas('category', fn (Builder $query) => $query->where('name', 'like', $search));
                 });
             })
             ->when($this->status !== '', fn (Builder $query) => $query->where('is_active', $this->status === '1'))

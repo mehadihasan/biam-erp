@@ -337,7 +337,7 @@
                                 <td>{{ $supplier->contact_person ?: '-' }}</td>
                                 <td>{{ $supplier->phone ?: '-' }}</td>
                                 <td>{{ $supplier->email ?: '-' }}</td>
-                                <td>{{ $supplier->category ?: '-' }}</td>
+                                <td>{{ $supplier->category?->name ?: '-' }}</td>
                                 <td>
                                     <span class="suppliers-status {{ $supplier->is_active ? 'suppliers-status--active' : 'suppliers-status--inactive' }}">
                                         {{ $supplier->is_active ? 'Active' : 'Inactive' }}

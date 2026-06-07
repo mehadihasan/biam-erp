@@ -3,6 +3,8 @@
 namespace App\Filament\Pages\Inventory\Settings;
 
 use App\Filament\Pages\Inventory\BaseInventoryPage;
+use App\Models\InventoryCategory;
+use Illuminate\Support\Collection;
 
 class CreateSupplier extends BaseInventoryPage
 {
@@ -17,5 +19,12 @@ class CreateSupplier extends BaseInventoryPage
     public static function getNavigationUrl(): string
     {
         return Suppliers::getUrl(panel: 'admin');
+    }
+
+    public function getCategories(): Collection
+    {
+        return InventoryCategory::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 }

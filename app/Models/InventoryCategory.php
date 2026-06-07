@@ -16,4 +16,9 @@ class InventoryCategory extends Model
     {
         return $this->hasMany(InventoryItem::class);
     }
+
+    public function suppliers(): HasMany
+    {
+        return $this->hasMany(InventorySupplier::class, 'category_id');
+    }
 }
