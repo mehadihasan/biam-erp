@@ -45,6 +45,7 @@
         .req-status--rejected { background: #fee2e2; color: #dc2626; }
         .req-actions { display: flex; align-items: center; gap: 14px; }
         .req-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border: 0; background: transparent; color: #334155; padding: 0; cursor: pointer; }
+        .req-icon-button--edit { color: #173c63; }
         .req-icon-button--approve { color: #009b72; }
         .req-icon-button--reject { color: #ff1f3d; }
         .req-icon-button svg { width: 18px; height: 18px; }
@@ -153,6 +154,9 @@
                                     <div class="req-actions">
                                         <a href="{{ route('inventory.requisitions.show', $requisition) }}" wire:navigate class="req-icon-button" title="View" aria-label="View {{ $requisition->ref_no }}">
                                             <x-filament::icon icon="heroicon-o-eye" />
+                                        </a>
+                                        <a href="{{ route('inventory.requisitions.edit', $requisition) }}" wire:navigate class="req-icon-button req-icon-button--edit" title="Edit" aria-label="Edit {{ $requisition->ref_no }}">
+                                            <x-filament::icon icon="heroicon-o-pencil-square" />
                                         </a>
                                         <button type="button" wire:click="approve({{ $requisition->id }})" class="req-icon-button req-icon-button--approve" title="Approve" aria-label="Approve {{ $requisition->ref_no }}">
                                             <x-filament::icon icon="heroicon-o-check" />

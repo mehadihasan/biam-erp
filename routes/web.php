@@ -105,6 +105,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::put('/items/{item}', [InventoryItemController::class, 'update'])->whereNumber('item')->name('items.update');
         Route::delete('/items/{item}', [InventoryItemController::class, 'destroy'])->whereNumber('item')->name('items.destroy');
 
+        Route::get('/requisitions/{requisition}/edit', [InventoryRequisitionController::class, 'edit'])->whereNumber('requisition')->name('requisitions.edit');
         Route::get('/requisitions/{requisition}', [InventoryRequisitionController::class, 'show'])->whereNumber('requisition')->name('requisitions.show');
 
         Route::get('/settings/suppliers/{supplier}/edit', [InventorySupplierController::class, 'edit'])->whereNumber('supplier')->name('suppliers.edit');
