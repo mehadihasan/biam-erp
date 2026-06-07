@@ -51,6 +51,8 @@ class StockInPurchase extends BaseInventoryPage
 
     public array $selectedItems = [];
 
+    public bool $showPreviewModal = false;
+
     public function mount(): void
     {
         $this->stockInDate = now()->toDateString();
@@ -85,7 +87,7 @@ class StockInPurchase extends BaseInventoryPage
         ]);
 
         $item = InventoryItem::query()
-            ->with('unit')
+            ->with(['category', 'unit'])
             ->findOrFail($this->selectedItemId);
         $unit = InventoryUnit::query()->findOrFail($this->selectedUnitId);
         $quantity = (float) $this->quantity;
@@ -96,6 +98,7 @@ class StockInPurchase extends BaseInventoryPage
                 $quantity += (float) $selectedItem['quantity'];
 
                 $this->selectedItems[$index]['inventory_unit_id'] = $unit->id;
+                $this->selectedItems[$index]['category_name'] = $item->category?->name;
                 $this->selectedItems[$index]['unit_name'] = $unit->name;
                 $this->selectedItems[$index]['quantity'] = $this->numberForInput($quantity);
                 $this->selectedItems[$index]['unit_cost'] = $this->numberForInput($unitCost);
@@ -111,6 +114,7 @@ class StockInPurchase extends BaseInventoryPage
             'inventory_item_id' => $item->id,
             'item_code' => $item->item_code,
             'item_name' => $item->name,
+            'category_name' => $item->category?->name,
             'inventory_unit_id' => $unit->id,
             'unit_name' => $unit->name,
             'quantity' => $this->numberForInput($quantity),
@@ -128,28 +132,23 @@ class StockInPurchase extends BaseInventoryPage
         $this->selectedItems = array_values($this->selectedItems);
     }
 
+    public function openStockInPreview(): void
+    {
+        $this->validateStockIn();
+
+        $this->showPreviewModal = true;
+    }
+
+    public function closeStockInPreview(): void
+    {
+        $this->showPreviewModal = false;
+    }
+
     public function recordStockIn(): mixed
     {
-        $this->validate([
-            'stockInDate' => ['required', 'date'],
-            'expiryWarrantyDate' => ['nullable', 'date', 'after_or_equal:stockInDate'],
-            'referenceNumber' => ['nullable', 'string', 'max:255'],
-            'supplierId' => ['nullable', 'exists:inventory_suppliers,id'],
-            'purposeNotes' => ['nullable', 'string'],
-            'attachment' => ['nullable', 'file', 'max:5120'],
-            'selectedItems' => ['required', 'array', 'min:1'],
-            'selectedItems.*.inventory_item_id' => ['required', 'exists:inventory_items,id'],
-            'selectedItems.*.inventory_unit_id' => ['required', 'exists:inventory_units,id'],
-            'selectedItems.*.quantity' => ['required', 'numeric', 'min:1'],
-            'selectedItems.*.unit_cost' => ['required', 'numeric', 'min:0'],
-        ], [], [
-            'stockInDate' => 'stock-in date',
-            'expiryWarrantyDate' => 'expiry / warranty date',
-            'referenceNumber' => 'reference number',
-            'supplierId' => 'supplier',
-            'purposeNotes' => 'purpose / notes',
-            'selectedItems' => 'items',
-        ]);
+        $this->showPreviewModal = false;
+
+        $this->validateStockIn();
 
         $attachmentPath = $this->attachment?->store('inventory/stock-ins', 'public');
 
@@ -195,6 +194,22 @@ class StockInPurchase extends BaseInventoryPage
         return null;
     }
 
+    public function selectedSupplierName(): ?string
+    {
+        if ($this->supplierId === '') {
+            return null;
+        }
+
+        return InventorySupplier::query()
+            ->whereKey($this->supplierId)
+            ->value('company_name');
+    }
+
+    public function attachmentName(): ?string
+    {
+        return $this->attachment?->getClientOriginalName();
+    }
+
     public function getItems(): Collection
     {
         return InventoryItem::query()
@@ -226,7 +241,7 @@ class StockInPurchase extends BaseInventoryPage
         }
 
         return InventoryItem::query()
-            ->with('unit')
+            ->with(['category', 'unit'])
             ->find($this->selectedItemId);
     }
 
@@ -236,6 +251,30 @@ class StockInPurchase extends BaseInventoryPage
             fn (array $selectedItem): float => (float) $selectedItem['total'],
             $this->selectedItems,
         ));
+    }
+
+    private function validateStockIn(): void
+    {
+        $this->validate([
+            'stockInDate' => ['required', 'date'],
+            'expiryWarrantyDate' => ['nullable', 'date', 'after_or_equal:stockInDate'],
+            'referenceNumber' => ['nullable', 'string', 'max:255'],
+            'supplierId' => ['nullable', 'exists:inventory_suppliers,id'],
+            'purposeNotes' => ['nullable', 'string'],
+            'attachment' => ['nullable', 'file', 'max:5120'],
+            'selectedItems' => ['required', 'array', 'min:1'],
+            'selectedItems.*.inventory_item_id' => ['required', 'exists:inventory_items,id'],
+            'selectedItems.*.inventory_unit_id' => ['required', 'exists:inventory_units,id'],
+            'selectedItems.*.quantity' => ['required', 'numeric', 'min:1'],
+            'selectedItems.*.unit_cost' => ['required', 'numeric', 'min:0'],
+        ], [], [
+            'stockInDate' => 'stock-in date',
+            'expiryWarrantyDate' => 'expiry / warranty date',
+            'referenceNumber' => 'reference number',
+            'supplierId' => 'supplier',
+            'purposeNotes' => 'purpose / notes',
+            'selectedItems' => 'items',
+        ]);
     }
 
     private function resetSelectionRow(): void
@@ -257,6 +296,7 @@ class StockInPurchase extends BaseInventoryPage
         $this->purposeNotes = '';
         $this->attachment = null;
         $this->selectedItems = [];
+        $this->showPreviewModal = false;
     }
 
     private function numberForInput(float $value): string

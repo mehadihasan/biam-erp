@@ -227,6 +227,153 @@
             white-space: nowrap;
         }
 
+        .stock-in-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.58);
+            padding: 24px;
+        }
+
+        .stock-in-modal {
+            width: min(940px, 100%);
+            max-height: min(86vh, 760px);
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #001b33;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+        }
+
+        .stock-in-modal__header,
+        .stock-in-modal__actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 20px 24px;
+        }
+
+        .stock-in-modal__header {
+            border-bottom: 1px solid #cbd5e1;
+        }
+
+        .stock-in-modal__title {
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .stock-in-modal__subtitle {
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .stock-in-modal__body {
+            max-height: calc(min(86vh, 760px) - 154px);
+            overflow-y: auto;
+            padding: 22px 24px;
+        }
+
+        .stock-in-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .stock-in-preview-field {
+            min-width: 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            padding: 12px 14px;
+        }
+
+        .stock-in-preview-field--wide {
+            grid-column: 1 / -1;
+        }
+
+        .stock-in-preview-label {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .stock-in-preview-value {
+            display: block;
+            margin-top: 5px;
+            overflow-wrap: anywhere;
+            color: #001b33;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .stock-in-preview-section {
+            margin-top: 20px;
+        }
+
+        .stock-in-preview-section-title {
+            margin-bottom: 10px;
+            color: #001b33;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .stock-in-preview-items {
+            display: grid;
+            gap: 12px;
+        }
+
+        .stock-in-preview-item {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .stock-in-preview-item__title {
+            margin-bottom: 12px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .stock-in-modal__actions {
+            border-top: 1px solid #cbd5e1;
+            justify-content: flex-end;
+        }
+
+        .stock-in-modal__cancel,
+        .stock-in-modal__confirm {
+            display: inline-flex;
+            min-height: 42px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .stock-in-modal__cancel {
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #001b33;
+        }
+
+        .stock-in-modal__confirm {
+            border: 1px solid #007062;
+            background: #007062;
+            color: #ffffff;
+        }
+
         @media (max-width: 1180px) {
             .stock-in-picker {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -253,6 +400,37 @@
 
             .stock-in-submit,
             .stock-in-file {
+                width: 100%;
+            }
+
+            .stock-in-modal-backdrop {
+                align-items: flex-end;
+                padding: 12px;
+            }
+
+            .stock-in-modal__header,
+            .stock-in-modal__actions {
+                padding: 16px;
+            }
+
+            .stock-in-modal__body {
+                padding: 16px;
+            }
+
+            .stock-in-preview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stock-in-preview-field--wide {
+                grid-column: auto;
+            }
+
+            .stock-in-modal__actions {
+                flex-direction: column-reverse;
+            }
+
+            .stock-in-modal__cancel,
+            .stock-in-modal__confirm {
                 width: 100%;
             }
         }
@@ -287,6 +465,41 @@
         .dark .stock-in-items-table td {
             border-bottom-color: #334155;
         }
+
+        .dark .stock-in-modal {
+            border-color: #334155;
+            background: #111827;
+            color: #ffffff;
+        }
+
+        .dark .stock-in-modal__header,
+        .dark .stock-in-modal__actions,
+        .dark .stock-in-preview-item {
+            border-color: #334155;
+        }
+
+        .dark .stock-in-modal__subtitle,
+        .dark .stock-in-preview-label {
+            color: #94a3b8;
+        }
+
+        .dark .stock-in-modal__title,
+        .dark .stock-in-preview-section-title,
+        .dark .stock-in-preview-value,
+        .dark .stock-in-preview-item__title {
+            color: #ffffff;
+        }
+
+        .dark .stock-in-preview-field {
+            border-color: #334155;
+            background: #1f2937;
+        }
+
+        .dark .stock-in-modal__cancel {
+            border-color: #475569;
+            background: #111827;
+            color: #ffffff;
+        }
     </style>
 
     <div class="stock-in-page space-y-6">
@@ -301,7 +514,7 @@
             </div>
         @endif
 
-        <form wire:submit="recordStockIn" class="stock-in-card">
+        <form wire:submit="openStockInPreview" class="stock-in-card">
             <h3 class="stock-in-section-title">Select Items <span class="stock-in-required">*</span></h3>
 
             <div class="stock-in-picker">
@@ -457,10 +670,128 @@
                 class="stock-in-submit"
                 @disabled(! count($selectedItems))
                 wire:loading.attr="disabled"
-                wire:target="recordStockIn,attachment"
+                wire:target="openStockInPreview,recordStockIn,attachment"
             >
                 Record Stock In
             </button>
+
+            @if ($showPreviewModal)
+                @php
+                    $previewValue = fn ($value): string => filled($value) ? (string) $value : 'N/A';
+                    $formatMoney = fn ($value): string => '&#2547;' . rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
+                @endphp
+
+                <div class="stock-in-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="stock-in-preview-title">
+                    <div class="stock-in-modal">
+                        <div class="stock-in-modal__header">
+                            <div>
+                                <h3 class="stock-in-modal__title" id="stock-in-preview-title">Confirm Stock In</h3>
+                                <p class="stock-in-modal__subtitle">Review the entered stock-in details before submitting.</p>
+                            </div>
+                        </div>
+
+                        <div class="stock-in-modal__body">
+                            <div class="stock-in-preview-grid">
+                                <div class="stock-in-preview-field">
+                                    <span class="stock-in-preview-label">Stock-in Date</span>
+                                    <span class="stock-in-preview-value">{{ $previewValue($stockInDate) }}</span>
+                                </div>
+
+                                <div class="stock-in-preview-field">
+                                    <span class="stock-in-preview-label">Expiry / Warranty Date</span>
+                                    <span class="stock-in-preview-value">{{ $previewValue($expiryWarrantyDate) }}</span>
+                                </div>
+
+                                <div class="stock-in-preview-field">
+                                    <span class="stock-in-preview-label">Supplier</span>
+                                    <span class="stock-in-preview-value">{{ $previewValue($this->selectedSupplierName()) }}</span>
+                                </div>
+
+                                <div class="stock-in-preview-field">
+                                    <span class="stock-in-preview-label">Purchase Reference / Invoice No</span>
+                                    <span class="stock-in-preview-value">{{ $previewValue($referenceNumber) }}</span>
+                                </div>
+
+                                <div class="stock-in-preview-field stock-in-preview-field--wide">
+                                    <span class="stock-in-preview-label">Notes / Remarks</span>
+                                    <span class="stock-in-preview-value">{{ $previewValue($purposeNotes) }}</span>
+                                </div>
+
+                                <div class="stock-in-preview-field">
+                                    <span class="stock-in-preview-label">Attachment</span>
+                                    <span class="stock-in-preview-value">{{ $previewValue($this->attachmentName()) }}</span>
+                                </div>
+
+                                <div class="stock-in-preview-field">
+                                    <span class="stock-in-preview-label">Total Price</span>
+                                    <span class="stock-in-preview-value">{!! $formatMoney($this->grandTotal()) !!}</span>
+                                </div>
+                            </div>
+
+                            <div class="stock-in-preview-section">
+                                <h4 class="stock-in-preview-section-title">Items</h4>
+
+                                <div class="stock-in-preview-items">
+                                    @foreach ($selectedItems as $selectedItem)
+                                        <div class="stock-in-preview-item" wire:key="stock-in-preview-{{ $selectedItem['inventory_item_id'] }}">
+                                            <div class="stock-in-preview-item__title">
+                                                {{ $loop->iteration }}. {{ $selectedItem['item_name'] ?? 'N/A' }}
+                                            </div>
+
+                                            <div class="stock-in-preview-grid">
+                                                <div class="stock-in-preview-field">
+                                                    <span class="stock-in-preview-label">Item</span>
+                                                    <span class="stock-in-preview-value">{{ $previewValue($selectedItem['item_name'] ?? null) }}</span>
+                                                </div>
+
+                                                <div class="stock-in-preview-field">
+                                                    <span class="stock-in-preview-label">Category</span>
+                                                    <span class="stock-in-preview-value">{{ $previewValue($selectedItem['category_name'] ?? null) }}</span>
+                                                </div>
+
+                                                <div class="stock-in-preview-field">
+                                                    <span class="stock-in-preview-label">Unit</span>
+                                                    <span class="stock-in-preview-value">{{ $previewValue($selectedItem['unit_name'] ?? null) }}</span>
+                                                </div>
+
+                                                <div class="stock-in-preview-field">
+                                                    <span class="stock-in-preview-label">Quantity</span>
+                                                    <span class="stock-in-preview-value">{{ $previewValue($selectedItem['quantity'] ?? null) }}</span>
+                                                </div>
+
+                                                <div class="stock-in-preview-field">
+                                                    <span class="stock-in-preview-label">Unit Price</span>
+                                                    <span class="stock-in-preview-value">{!! $formatMoney($selectedItem['unit_cost'] ?? 0) !!}</span>
+                                                </div>
+
+                                                <div class="stock-in-preview-field">
+                                                    <span class="stock-in-preview-label">Total Price</span>
+                                                    <span class="stock-in-preview-value">{!! $formatMoney($selectedItem['total'] ?? 0) !!}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stock-in-modal__actions">
+                            <button type="button" wire:click="closeStockInPreview" class="stock-in-modal__cancel">
+                                Cancel / Edit
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="recordStockIn"
+                                wire:loading.attr="disabled"
+                                wire:target="recordStockIn"
+                                class="stock-in-modal__confirm"
+                            >
+                                Confirm &amp; Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </form>
     </div>
 </x-filament-panels::page>
