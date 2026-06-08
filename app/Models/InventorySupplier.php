@@ -25,4 +25,26 @@ class InventorySupplier extends Model
     {
         return $this->belongsTo(InventoryCategory::class, 'category_id');
     }
+
+    public function categoryName(string $fallback = 'N/A'): string
+    {
+        $category = $this->relationLoaded('category')
+            ? $this->getRelation('category')
+            : $this->category()->first();
+
+        if ($category instanceof InventoryCategory) {
+            return $category->name;
+        }
+
+        $legacyCategory = $this->getRawOriginal('category');
+
+        return filled($legacyCategory) ? (string) $legacyCategory : $fallback;
+    }
+
+    public function legacyCategoryName(): ?string
+    {
+        $legacyCategory = $this->getRawOriginal('category');
+
+        return filled($legacyCategory) ? (string) $legacyCategory : null;
+    }
 }

@@ -1,11 +1,18 @@
 @php
     $selectedCategoryId = old('category_id', $supplier?->category_id);
+    $legacyCategoryName = $supplier?->legacyCategoryName();
     $categoryOptions = $categories
         ->map(fn ($category): array => [
             'id' => (string) $category->id,
             'name' => $category->name,
         ])
         ->values();
+
+    if (blank($selectedCategoryId) && filled($legacyCategoryName)) {
+        $selectedCategoryId = $categoryOptions
+            ->first(fn (array $category): bool => strcasecmp($category['name'], $legacyCategoryName) === 0)['id'] ?? null;
+    }
+
     $isActive = old('is_active', $supplier?->is_active ?? true);
 @endphp
 

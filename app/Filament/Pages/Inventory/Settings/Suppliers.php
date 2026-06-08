@@ -55,6 +55,7 @@ class Suppliers extends BaseInventoryPage
                         ->orWhere('contact_person', 'like', $search)
                         ->orWhere('phone', 'like', $search)
                         ->orWhere('email', 'like', $search)
+                        ->orWhere('category', 'like', $search)
                         ->orWhereHas('category', fn (Builder $query) => $query->where('name', 'like', $search));
                 });
             })
